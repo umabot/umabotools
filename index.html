@@ -3,55 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="3; url=spaceinvaders.html">
-    <title>Umabotools - Redirecting...</title>
+    <title>Umabotools</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body {
             background-color: #0d0e15;
             color: #ffffff;
             font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
+            padding: 40px 20px;
+            line-height: 1.6;
         }
         .container {
-            max-width: 600px;
-            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
         }
         h1 {
             color: #39ff14;
-            font-size: 36px;
-            margin-bottom: 20px;
+            font-size: 28px;
+            margin-bottom: 40px;
             text-shadow: 0 0 10px #39ff14;
         }
-        p {
-            font-size: 18px;
-            margin-bottom: 30px;
+        . tools {
+            list-style: none;
         }
-        a {
+        .tools li {
+            margin-bottom: 15px;
+        }
+        .tools a {
             color: #39ff14;
-            text-decoration: none;
-            border: 2px solid #39ff14;
-            padding: 10px 20px;
+            text-decoration:  none;
             display: inline-block;
             transition: all 0.2s;
+            padding: 2px 0;
+            border-bottom: 1px solid transparent;
         }
-        a:hover {
-            background: #39ff14;
-            color: #000;
-            box-shadow: 0 0 15px #39ff14;
+        .tools a:hover {
+            border-bottom: 1px solid #39ff14;
+            text-shadow: 0 0 8px #39ff14;
+        }
+        .tools a:: before {
+            content: '> ';
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .tools a:hover::before {
+            opacity: 1;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to Umabotools</h1>
-        <p>If you are not automatically redirected, click below:</p>
-        <a href="spaceinvaders.html" aria-label="Play Space Invaders Game">Play Space Invaders</a>
+        <h1>Umabotools</h1>
+        <ul class="tools">
+            <li><a href="spaceinvaders.html">Space Invaders</a></li>
+        </ul>
     </div>
 </body>
 </html>
