@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umabotools</title>
+    <title>Umabot Tools - Landing Page</title>
     <style>
         * {
             margin: 0;
@@ -11,56 +11,159 @@
             box-sizing: border-box;
         }
         body {
-            background-color: #0d0e15;
-            color: #ffffff;
-            font-family: 'Courier New', Courier, monospace;
-            padding: 40px 20px;
+            background-color: #ffffff;
+            color: #333333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 20px;
             line-height: 1.6;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
+            padding: 20px;
         }
         h1 {
-            color: #39ff14;
-            font-size: 28px;
-            margin-bottom: 40px;
-            text-shadow: 0 0 10px #39ff14;
+            color: #000000;
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: 600;
         }
-        . tools {
-            list-style: none;
+        .description {
+            margin-bottom: 30px;
+            color: #666666;
+            font-size: 16px;
         }
-        .tools li {
-            margin-bottom: 15px;
+        hr {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 30px 0;
         }
-        .tools a {
-            color: #39ff14;
-            text-decoration:  none;
-            display: inline-block;
-            transition: all 0.2s;
-            padding: 2px 0;
-            border-bottom: 1px solid transparent;
+        h2 {
+            color: #000000;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: 600;
         }
-        .tools a:hover {
-            border-bottom: 1px solid #39ff14;
-            text-shadow: 0 0 8px #39ff14;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-        .tools a:: before {
-            content: '> ';
-            opacity: 0;
-            transition: opacity 0.2s;
+        th {
+            background-color: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
         }
-        .tools a:hover::before {
-            opacity: 1;
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: top;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .app-name {
+            font-weight: 500;
+            font-size: 16px;
+        }
+        .see-more {
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            h2 {
+                font-size: 20px;
+            }
+            table {
+                font-size: 14px;
+            }
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+        
+        /* Stack table on very small screens */
+        @media (max-width: 480px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr {
+                margin-bottom: 20px;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                padding: 10px;
+            }
+            td {
+                border: none;
+                position: relative;
+                padding-left: 0;
+            }
+            td:before {
+                font-weight: 600;
+                display: block;
+                margin-bottom: 5px;
+            }
+            td:nth-of-type(1):before { content: "App: "; }
+            td:nth-of-type(2):before { content: "Description: "; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Umabotools</h1>
-        <ul class="tools">
-            <li><a href="spaceinvaders.html">Space Invaders</a></li>
-        </ul>
+        <h1>Umabot Tools - Landing Page</h1>
+        
+        <div class="description">
+            <p>Welcome to Umabot Tools, an experimental collection of single-page web applications. This project serves as a playground for exploring web development concepts, building lightweight tools, and testing interactive features—all within the simplicity of standalone HTML pages. Each app is self-contained and can run directly in your browser without any backend infrastructure.</p>
+        </div>
+        
+        <hr>
+        
+        <h2>Available Tools</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Application</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span class="app-name"><a href="spaceinvaders.html">Space Invaders</a></span>
+                    </td>
+                    <td>
+                        A classic arcade game recreation built with HTML5 Canvas. Defend Earth from waves of alien invaders!
+                        <a href="docs/spaceinvaders/README.md" class="see-more">See more</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </body>
 </html>
