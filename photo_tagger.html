@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI Photo Tagger & Renamer</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles for flags */
+        .lang-button {
+            transition: all 0.2s;
+            filter: grayscale(100%);
+            opacity: 0.5;
+            cursor: pointer;
+        }
+        /* Active style for the selected flag */
+        .lang-button.active {
+            filter: grayscale(0%);
+            opacity: 1;
+            transform: scale(1.1);
+            outline: 2px solid #3b82f6; /* blue-500 */
+            border-radius: 4px;
+        }
+        /* Custom scrollbar for the history container */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #9ca3af; /* gray-400 */
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        /* Custom CSS for SSO Buttons */
+        .sso-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            border: 1px solid;
+            font-size: 0.875rem; /* text-sm */
+        }
+        .google-btn {
+            background-color: white;
+            color: #4285F4;
+            border-color: #ddd;
+        }
+        .google-btn:hover {
+            background-color: #f1f1f1;
+        }
+        .microsoft-btn {
+            background-color: white;
+            color: #0078D4;
+            border-color: #ddd;
+        }
+        .microsoft-btn:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8 font-sans">
+
+    <div id="loadingOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="flex flex-col items-center">
+            <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-4 text-white text-lg font-semibold" id="loadingText">Authenticating...</p>
+        </div>
+    </div>
+
+    <div id="appContainer" class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl p-6 sm:p-10">
+        <header class="mb-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-blue-700 mb-2">GenAI Photo Tagger</h1>
+            <p class="text-gray-600">Enter a photo URL, and Gemini Vision will generate descriptive tags and a catchy title for it.</p>
+            
+            <!-- Auth Status/Login Container -->
+            <div id="authContainer" class="mt-4">
+                <p class="text-sm text-red-500">Authentication failed or waiting...</p>
+            </div>
+            <!-- End Auth Status/Login Container -->
+            
+            <!-- API Key Management Container -->
+            <div id="apiKeyContainer" class="mt-4"></div>
+            <!-- End API Key Management Container -->
+        </header>
+
+        <!-- Input Area -->
+        <section class="mb-8 p-4 border border-blue-200 rounded-lg bg-blue-50">
+            <h2 class="text-xl font-semibold text-blue-800 mb-3">1. Enter Photo URL</h2>
+            <p class="text-sm text-gray-700 mb-3">Paste the **direct image URL** (e.g., ending in .jpg, .png) here. CORS restrictions may cause some links to fail, in which case a placeholder image will be used for analysis.</p>
+            <input type="url" id="dataInput" placeholder="e.g., https://example.com/images/my_photo.jpg"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm font-mono">
+            
+            <!-- NEW INSPIRATION INPUT -->
+            <h3 class="text-md font-semibold text-blue-800 mb-2 mt-4">Your Inspiration (Optional)</h3>
+            <p class="text-xs text-gray-700 mb-2">Use a quote, theme, or feeling to guide the AI's title and tags. (e.g., "Empty streets are a blessing")</p>
+            <input type="text" id="inspirationInput" placeholder="Loading creative prompt..."
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm font-mono" disabled>
+            <!-- END NEW INSPIRATION INPUT -->
+
+            <button onclick="processData()" id="processButton"
+                class="mt-4 w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-300 shadow-md disabled:bg-blue-400">
+                Analyze Photo with GenAI
+            </button>
+        </section>
+
+        <!-- Results Area (Now Tabbed) -->
+        <section>
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">2. GenAI Analysis</h2>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 mb-4">
+                <button id="analysisTab" onclick="switchTab('analysis')" 
+                    class="tab-button py-2 px-4 text-sm font-medium transition-colors duration-200 focus:outline-none 
+                           border-b-2 border-blue-600 text-blue-600">
+                    Current Analysis
+                </button>
+                <button id="historyTab" onclick="switchTab('history')" 
+                    class="tab-button py-2 px-4 text-sm font-medium transition-colors duration-200 focus:outline-none 
+                           border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    History
+                </button>
+            </div>
+            <!-- End Tabs -->
+
+            <!-- Analysis Content -->
+            <div id="analysisContent">
+                <!-- Language Selector Flags for Analysis -->
+                <div id="languageSelector" class="flex space-x-4 mb-4 text-3xl">
+                    <button id="flag-en" onclick="switchLanguage('en')" class="lang-button active" title="English">
+                        🇬🇧
+                    </button>
+                    <button id="flag-fr" onclick="switchLanguage('fr')" class="lang-button" title="Français">
+                        🇫🇷
+                    </button>
+                    <button id="flag-es" onclick="switchLanguage('es')" class="lang-button" title="Español">
+                        🇪🇸
+                    </button>
+                </div>
+                <!-- End Language Selector -->
+                
+                <div id="resultsContainer" class="overflow-x-auto border border-gray-300 rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source Image</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Title</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Tags</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody" class="bg-white divide-y divide-gray-200">
+                            <tr id="initialRow"><td colspan="4" class="py-4 text-center text-gray-500">Enter a URL and click "Analyze Photo with GenAI" to begin.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- History Content -->
+            <div id="historyContent" class="hidden">
+                <!-- Language Selector Flags for History -->
+                <div id="historyLanguageSelector" class="flex space-x-4 mb-4 text-3xl">
+                    <button id="history-flag-en" onclick="switchLanguage('en')" class="lang-button active" title="English">
+                        🇬🇧
+                    </button>
+                    <button id="history-flag-fr" onclick="switchLanguage('fr')" class="lang-button" title="Français">
+                        🇫🇷
+                    </button>
+                    <button id="history-flag-es" onclick="switchLanguage('es')" class="lang-button" title="Español">
+                        🇪🇸
+                    </button>
+                </div>
+                <!-- End Language Selector -->
+                <div id="historyListContainer" class="max-h-96 overflow-y-auto custom-scrollbar border border-gray-300 rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">Time</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">Image</th>
+                                <th id="historyTitleHeader" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">Title (EN)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">Inspiration</th>
+                                <th id="historyTagsHeader" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[40%]">Tags (EN)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody" class="bg-white divide-y divide-gray-200">
+                            <tr><td colspan="5" class="py-4 text-center text-gray-500">History is loading or empty...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Firebase and Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // CORRECTED IMPORTS: Use OAuthProvider for Microsoft/Azure AD
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, OAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, Timestamp, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // IMPORTANT: Global variables for Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db;
+        let auth;
+        let userId = null;
+        let isAuthReady = false;
+        
+        // Global State for Language and Results
+        let currentLanguage = 'en'; // Default language
+        let lastSuggestions = null;
+        let lastLink = null;
+        let lastDocId = null;
+        let historyData = []; // Array to store history from Firestore
+
+
+        setLogLevel('debug'); // Enable detailed Firebase logging
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const authContainer = document.getElementById('authContainer'); // Updated reference
+        const processButton = document.getElementById('processButton');
+        const resultsBody = document.getElementById('resultsBody');
+        const historyBody = document.getElementById('historyBody');
+        const analysisContent = document.getElementById('analysisContent');
+        const historyContent = document.getElementById('historyContent');
+        const analysisTab = document.getElementById('analysisTab');
+        const historyTab = document.getElementById('historyTab');
+        const inspirationInput = document.getElementById('inspirationInput'); // New reference
+
+        // History Header references
+        const historyTitleHeader = document.getElementById('historyTitleHeader');
+        const historyTagsHeader = document.getElementById('historyTagsHeader');
+        const apiKeyContainer = document.getElementById('apiKeyContainer');
+
+        const googleProvider = new GoogleAuthProvider();
+        // CORRECTED: Instantiate generic OAuthProvider for Microsoft
+        const microsoftProvider = new OAuthProvider('microsoft.com');
+
+
+        /**
+         * Store API key securely in localStorage
+         */
+        function saveApiKey(key) {
+            localStorage.setItem('gemini_api_key', key);
+        }
+
+        /**
+         * Retrieve API key from localStorage
+         */
+        function getApiKey() {
+            return localStorage.getItem('gemini_api_key') || '';
+        }
+
+        /**
+         * Render API key management UI
+         */
+        function renderApiKeyInput() {
+            const savedKey = getApiKey();
+            const keyStatus = savedKey ? '✅ API Key Saved' : '❌ No API Key';
+            
+            return `
+                <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">API Key Management</h3>
+                    <div class="flex gap-2 items-center">
+                        <input type="password" id="apiKeyInput" 
+                            value="${savedKey}" 
+                            placeholder="Enter your Gemini API Key"
+                            class="flex-1 p-2 border border-gray-300 rounded text-sm">
+                        <button onclick="saveUserApiKey()" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+                            Save
+                        </button>
+                        <span class="text-sm ${savedKey ? 'text-green-600' : 'text-red-600'}">${keyStatus}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        Your API key is stored locally in your browser and never sent to our servers.
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:underline">Get a free API key</a>
+                    </p>
+                </div>
+            `;
+        }
+
+        /**
+         * Save user API key from input field
+         */
+        window.saveUserApiKey = function() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (key) {
+                saveApiKey(key);
+                alert('API Key saved successfully!');
+                // Update the status indicator
+                apiKeyContainer.innerHTML = renderApiKeyInput();
+            }
+        }
+
+
+        function setLoading(isLoading, message = 'Loading...') {
+            loadingText.textContent = message;
+            loadingOverlay.classList.toggle('hidden', !isLoading);
+            processButton.disabled = isLoading;
+            inspirationInput.disabled = isLoading; // Disable inspiration input while processing
+        }
+
+        /**
+         * Renders the authentication status (Logged In, Guest, or Login Buttons).
+         */
+        function renderAuthStatus(user) {
+            if (user && user.isAnonymous === false) {
+                // Logged in with a real account (SSO or Email)
+                const emailOrName = user.email || user.displayName || 'Verified User';
+                authContainer.innerHTML = `
+                    <div class="flex items-center justify-between bg-green-50 p-3 rounded-lg border border-green-200">
+                        <p class="text-sm text-green-700 font-medium truncate">Logged in as: <span class="font-bold">${emailOrName}</span> (ID: ${user.uid})</p>
+                        <button onclick="signOutUser()" class="text-red-500 hover:text-red-700 text-sm font-semibold ml-4 flex-shrink-0 transition duration-150">Sign Out</button>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">App ID: ${appId}</p>
+                `;
+            } else if (user && user.isAnonymous === true) {
+                // Logged in anonymously (initial state in this environment)
+                authContainer.innerHTML = `
+                    <div class="flex flex-wrap items-center gap-3">
+                        <p class="text-sm text-yellow-700 font-medium bg-yellow-50 p-3 rounded-lg border border-yellow-200 flex-shrink-0">
+                            Guest Mode (ID: ${user.uid})
+                        </p>
+                        <span class="text-sm text-gray-600">Sign in to save results:</span>
+                        <button onclick="signInWithGoogle()" class="sso-btn google-btn">
+                            <img src="https://www.gstatic.com/images/branding/product/2x/google_for_developers_64dp.png" alt="Google" class="w-4 h-4 mr-2">
+                            Google
+                        </button>
+                        <button onclick="signInWithMicrosoft()" class="sso-btn microsoft-btn">
+                            <img src="https://placehold.co/16x16/0078D4/ffffff?text=M" alt="Microsoft" class="w-4 h-4 mr-2">
+                            Microsoft
+                        </button>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">App ID: ${appId}</p>
+                `;
+            } else {
+                 // Not authenticated (Should be a rare state after init)
+                 authContainer.innerHTML = `<p class="text-sm text-red-500">Authentication failed or waiting...</p>`;
+            }
+        }
+        
+        /**
+         * Calls GenAI to get an inspirational text prompt.
+         */
+        async function getInspiration() {
+            const defaultInspiration = "Urban narrative";
+            const prompt = "Generate a single, short, creative phrase, quote, or two-word style tag (e.g., 'Vintage Americana', 'Lone figure in fog', 'Empty streets are a blessing') that can be used to inspire a photographer's title and tags. Respond with ONLY the phrase/quote and nothing else.";
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                // Sanitize the generated text to remove quotes and special characters that might break the subsequent JSON payload
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim().replace(/['"~]/g, '') || defaultInspiration;
+                return text;
+
+            } catch (error) {
+                console.warn("Failed to fetch inspiration prompt:", error);
+                return defaultInspiration;
+            }
+        }
+
+
+        /**
+         * Initializes Firebase and authenticates the user.
+         */
+        async function initializeFirebase() {
+            setLoading(true, 'Initializing Firebase...');
+            try {
+                if (!firebaseConfig) throw new Error("Firebase configuration not found.");
+
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        isAuthReady = true;
+                        
+                        // Fetch inspiration after auth is complete
+                        inspirationInput.value = await getInspiration();
+                        inspirationInput.placeholder = "Enter your inspiration...";
+
+                        // Render API key management UI
+                        apiKeyContainer.innerHTML = renderApiKeyInput();
+
+                        fetchHistory(); // Start listening to history after auth
+                        renderAuthStatus(user);
+                        setLoading(false);
+                    } else {
+                        // Attempt environment sign-in only if no user exists
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization or authentication failed:", error);
+                authContainer.innerHTML = `<p class="text-sm text-red-700 font-bold">CRITICAL AUTH ERROR: ${error.message}</p>`;
+                setLoading(false);
+            }
+        }
+
+        /**
+         * Handles signing in with Google.
+         */
+        window.signInWithGoogle = async function() {
+            setLoading(true, 'Signing in with Google...');
+            try {
+                await signInWithPopup(auth, googleProvider);
+                // Auth state change listener handles the rest
+            } catch (error) {
+                console.error("Google Sign-In Failed:", error);
+                setLoading(false);
+            }
+        }
+
+        /**
+         * Handles signing in with Microsoft.
+         */
+        window.signInWithMicrosoft = async function() {
+            setLoading(true, 'Signing in with Microsoft...');
+            try {
+                // Now using the generic OAuthProvider correctly configured for Microsoft
+                await signInWithPopup(auth, microsoftProvider);
+                // Auth state change listener handles the rest
+            } catch (error) {
+                console.error("Microsoft Sign-In Failed:", error);
+                setLoading(false);
+            }
+        }
+
+        /**
+         * Handles signing out the current user.
+         */
+        window.signOutUser = async function() {
+            setLoading(true, 'Signing out...');
+            try {
+                await signOut(auth);
+                // Force anonymous sign-in immediately after signing out a real user
+                await signInAnonymously(auth);
+                // Auth state change listener handles the status update
+            } catch (error) {
+                console.error("Sign-Out Failed:", error);
+                setLoading(false);
+            }
+        }
+
+        /**
+         * Updates the active flag visual for a specific container (Analysis or History).
+         */
+        function updateFlagVisuals(containerId, lang) {
+            document.querySelectorAll(`#${containerId} .lang-button`).forEach(btn => {
+                btn.classList.remove('active');
+                // The IDs are 'flag-en' or 'history-flag-en'. Check if the ID ends with the language code.
+                if (btn.id.endsWith(`-${lang}`)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        /**
+         * Switches between the Analysis and History tabs.
+         */
+        window.switchTab = function(tabName) {
+            if (tabName === 'analysis') {
+                analysisContent.classList.remove('hidden');
+                historyContent.classList.add('hidden');
+                analysisTab.classList.add('border-blue-600', 'text-blue-600');
+                analysisTab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                historyTab.classList.remove('border-blue-600', 'text-blue-600');
+                historyTab.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                
+                // Ensure analysis flags are correct
+                updateFlagVisuals('languageSelector', currentLanguage);
+            } else if (tabName === 'history') {
+                historyContent.classList.remove('hidden');
+                analysisContent.classList.add('hidden');
+                historyTab.classList.add('border-blue-600', 'text-blue-600');
+                historyTab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                analysisTab.classList.remove('border-blue-600', 'text-blue-600');
+                analysisTab.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+
+                // Ensure history flags are correct and re-render history table with current language
+                updateFlagVisuals('historyLanguageSelector', currentLanguage);
+                renderHistory(); 
+            }
+        }
+        
+        /**
+         * Fetches and listens to real-time history updates from Firestore.
+         */
+        function fetchHistory() {
+            if (!isAuthReady || !userId) return;
+
+            const historyCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/single_photo_suggestions`);
+            
+            // Use query to listen to the collection
+            const q = query(historyCollectionRef); 
+
+            onSnapshot(q, (snapshot) => {
+                historyData = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    historyData.push({ id: doc.id, ...data });
+                });
+
+                // Sort the history by time (newest first)
+                historyData.sort((a, b) => (b.processedAt?.seconds || 0) - (a.processedAt?.seconds || 0));
+
+                // Only render if the history tab is active
+                if (!historyContent.classList.contains('hidden')) {
+                    renderHistory();
+                }
+            }, (error) => {
+                console.error("Error fetching history:", error);
+                historyBody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-red-500">Failed to load history: ${error.message}</td></tr>`;
+            });
+        }
+
+        /**
+         * Renders the history data into the history table using the current global language.
+         */
+        function renderHistory() {
+            if (!historyData.length) {
+                historyBody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-500">No photos analyzed yet.</td></tr>`;
+                return;
+            }
+
+            // Determine language keys and header text
+            const lang = currentLanguage;
+            const titleKey = `newTitle_${lang}`;
+            const tagsKey = `suggestedTags_${lang}`;
+
+            const langName = { 'en': 'EN', 'fr': 'FR', 'es': 'ES' }[lang];
+
+            // Update header text based on selected language
+            historyTitleHeader.textContent = `Title (${langName})`;
+            historyTagsHeader.textContent = `Tags (${langName})`;
+
+            historyBody.innerHTML = historyData.map(item => {
+                const date = item.processedAt ? item.processedAt.toDate().toLocaleString() : 'N/A';
+                // Use dynamic keys
+                const title = item[titleKey] || 'N/A'; 
+                const inspiration = item.inspiration || 'N/A';
+                // Use dynamic keys
+                const tags = (item[tagsKey] || []).join(', ') || 'N/A'; 
+                
+                return `
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-4 py-3 text-xs text-gray-600">${date}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <img src="${item.inputLink}" 
+                                onerror="this.src='https://placehold.co/50x50/cccccc/333333?text=N/A'" 
+                                class="w-12 h-12 object-cover rounded shadow-sm">
+                        </td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-800">${title}</td>
+                        <td class="px-4 py-3 text-xs text-gray-700 italic">${inspiration}</td>
+                        <td class="px-4 py-3 text-xs text-gray-500">${tags}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Converts a remote image URL to a Base64 string for the Gemini API.
+         * Handles CORS by falling back to a placeholder image if the fetch fails.
+         */
+        async function fetchImageAsBase64(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const blob = await response.blob();
+                const mimeType = blob.type;
+
+                // Check for common image types. If not an image, use a placeholder
+                if (!mimeType.startsWith('image/')) {
+                    throw new Error("Link does not point to a recognized image type.");
+                }
+
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const base64String = reader.result.split(',')[1];
+                        resolve({ base64: base64String, mimeType: mimeType });
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (error) {
+                console.warn(`CORS or fetch issue for ${url}. Using placeholder image.`, error);
+                // Fallback to a placeholder image in case of CORS or invalid link
+                const placeholderUrl = `https://placehold.co/100x100/aaaaaa/333333?text=CORS+FAIL`;
+                const response = await fetch(placeholderUrl);
+                const blob = await response.blob();
+                const mimeType = blob.type;
+
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const base64String = reader.result.split(',')[1];
+                        resolve({ base64: base64String, mimeType: mimeType });
+                    };
+                    reader.readAsDataURL(blob);
+                });
+            }
+        }
+
+        /**
+         * Calls the Gemini API for image understanding and structured output.
+         */
+        async function getGeminiSuggestions(base64Image, mimeType, inspirationText) {
+            const systemPrompt = "You are a professional photo tagger. Analyze the provided image and generate an extremely descriptive, engaging title (up to 5 words) and a list of 5 relevant keywords/tags for English, French, and Spanish. The output MUST be a JSON object.";
+            
+            // Sanitize the inspiration text again before embedding in the prompt
+            const sanitizedInspiration = inspirationText.replace(/"/g, '').trim(); 
+            
+            // User query now includes the inspiration text to guide the model's tone and theme.
+            const userQuery = `Analyze this photograph and suggest a catchy title and a list of 5 tags for all three languages: English, French, and Spanish. Use the following inspiration/theme to guide your suggestions: "${sanitizedInspiration}". Ensure the titles are max 5 words.`;
+
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: [
+                        { text: userQuery },
+                        { inlineData: { mimeType, data: base64Image } }
+                    ]
+                }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            // English Fields
+                            "newTitle_en": { "type": "STRING", "description": "A new, descriptive title for the photo in English (max 5 words)." },
+                            "suggestedTags_en": {
+                                "type": "ARRAY",
+                                "description": "A list of 5 relevant tags/keywords in English.",
+                                "items": { "type": "STRING" }
+                            },
+                            // French Fields
+                            "newTitle_fr": { "type": "STRING", "description": "A new, descriptive title for the photo in French (max 5 words)." },
+                            "suggestedTags_fr": {
+                                "type": "ARRAY",
+                                "description": "A list of 5 relevant tags/keywords in French.",
+                                "items": { "type": "STRING" }
+                            },
+                            // Spanish Fields
+                            "newTitle_es": { "type": "STRING", "description": "A new, descriptive title for the photo in Spanish (max 5 words)." },
+                            "suggestedTags_es": {
+                                "type": "ARRAY",
+                                "description": "A list of 5 relevant tags/keywords in Spanish.",
+                                "items": { "type": "STRING" }
+                            }
+                        }
+                    }
+                }
+            };
+
+            // Priority: Canvas injected key > localStorage > empty (prompt user)
+            const apiKey = getApiKey() || ""; // Canvas will inject API Key if empty string
+            
+            if (!apiKey) {
+                throw new Error('⚠️ API Key Required - Please configure your Gemini API key above. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 underline">Get a free API key</a>');
+            }
+            
+            // Placeholder for structured error response
+            const structuredError = {
+                newTitle_en: "Error", suggestedTags_en: ["api-error"],
+                newTitle_fr: "Erreur", suggestedTags_fr: ["erreur-api"],
+                newTitle_es: "Error", suggestedTags_es: ["error-api"]
+            };
+
+            for (let i = 0; i < 5; i++) { // Exponential backoff loop
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 429 && i < 4) {
+                        const delay = Math.pow(2, i) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        const errorBody = await response.json().catch(() => ({}));
+                        console.error(`Gemini API returned status ${response.status}:`, errorBody);
+                        throw new Error(`API Error: ${errorBody.error?.message || response.statusText}`);
+                    }
+
+                    const result = await response.json();
+                    const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    // IMPORTANT: Handle empty or missing text before JSON.parse
+                    if (!jsonText || jsonText.trim() === '') {
+                        throw new Error("Gemini returned a successful status but provided no response text (empty JSON).");
+                    }
+                    
+                    try {
+                        return JSON.parse(jsonText);
+                    } catch (parseError) {
+                        console.error("Failed to parse JSON response from Gemini:", jsonText);
+                        throw new Error(`Malformed JSON response from Gemini. Raw text starts with: ${jsonText.substring(0, 50)}...`);
+                    }
+
+                } catch (error) {
+                    console.error("Gemini API call failed:", error);
+                    return structuredError;
+                }
+            }
+            return { 
+                newTitle_en: "API Limit Exceeded", suggestedTags_en: ["rate-limited"],
+                newTitle_fr: "Limite API dépassée", suggestedTags_fr: ["rate-limited"],
+                newTitle_es: "Límite de API excedido", suggestedTags_es: ["rate-limited"]
+            };
+        }
+        
+        /**
+         * Renders the results in the table based on the currently selected language.
+         */
+        function displayResults(suggestions, lang, link) {
+            const titleElement = document.getElementById('title-output');
+            const tagsElement = document.getElementById('tags-output');
+            
+            if (!suggestions || !titleElement || !tagsElement) return;
+
+            // Get the data keys for the selected language
+            const titleKey = `newTitle_${lang}`;
+            const tagsKey = `suggestedTags_${lang}`;
+            
+            const title = suggestions[titleKey] || 'N/A';
+            const tags = (suggestions[tagsKey] || []).join(', ') || 'N/A';
+            
+            // Update the results cells
+            titleElement.textContent = title;
+            tagsElement.textContent = tags;
+            
+            // Update active flag visual (only for the analysis tab flags)
+            updateFlagVisuals('languageSelector', lang);
+
+            // Ensure the image and status (which are static across languages) are rendered if they exist
+            document.getElementById('image-cell').innerHTML = `<img src="${link}" onerror="this.src='https://placehold.co/70x70/cccccc/333333?text=Image+N/A'" class="w-16 h-16 object-cover rounded shadow-md">`;
+        }
+
+        /**
+         * Switches the display language. This function is called by all flag buttons.
+         */
+        window.switchLanguage = function(lang) {
+            currentLanguage = lang;
+            
+            // Check which tab is active and call the appropriate rendering/display function
+            if (!analysisContent.classList.contains('hidden')) {
+                // Analysis Tab is active
+                if (lastSuggestions) {
+                    displayResults(lastSuggestions, currentLanguage, lastLink);
+                }
+                updateFlagVisuals('languageSelector', lang);
+            } else if (!historyContent.classList.contains('hidden')) {
+                // History Tab is active
+                renderHistory(); // Re-render history table with the new language
+                updateFlagVisuals('historyLanguageSelector', lang);
+            }
+        }
+
+
+        /**
+         * Main function to process the single URL input.
+         */
+        window.processData = async function() {
+            if (!isAuthReady) {
+                const errorMessage = "Authentication is not yet complete. Please wait a moment and try again.";
+                console.error(errorMessage);
+                resultsBody.innerHTML = `<tr id="initialRow"><td colspan="4" class="py-4 text-center text-red-500">${errorMessage}</td></tr>`;
+                return;
+            }
+
+            const link = document.getElementById('dataInput').value.trim();
+            if (!link) {
+                const errorMessage = "Please enter a valid photo URL.";
+                console.error(errorMessage);
+                resultsBody.innerHTML = `<tr id="initialRow"><td colspan="4" class="py-4 text-center text-red-500">${errorMessage}</td></tr>`;
+                return;
+            }
+
+            // GET INSPIRATION TEXT
+            const inspirationText = inspirationInput.value.trim() || "No specific theme provided.";
+
+            // Switch to analysis view and reset results
+            switchTab('analysis');
+            lastLink = link;
+            lastDocId = crypto.randomUUID();
+            lastSuggestions = null;
+            resultsBody.innerHTML = ''; // Clear previous results
+            setLoading(true, 'Starting AI analysis...');
+
+
+            // Add initial row for visual feedback
+            resultsBody.insertAdjacentHTML('beforeend', `
+                <tr id="row-0" class="bg-yellow-50 transition duration-150">
+                    <td class="px-4 py-3 whitespace-nowrap" id="image-cell">
+                        <img src="${link}" onerror="this.src='https://placehold.co/70x70/cccccc/333333?text=Image+N/A'" class="w-16 h-16 object-cover rounded shadow-md">
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500" id="title-output">...Analyzing...</td>
+                    <td class="px-4 py-3 text-sm text-gray-500" id="tags-output">...Analyzing...</td>
+                    <td class="px-4 py-3 text-sm text-blue-500 font-semibold" id="status">Fetching Image</td>
+                </tr>
+            `);
+
+            try {
+                document.getElementById('status').textContent = 'Converting to Base64...';
+                const { base64, mimeType } = await fetchImageAsBase64(link);
+                
+                // --- ADDED DEBUG LOGGING FOR BASE64 SIZE ---
+                const dataSizeMB = (base64.length * 0.75 / 1024 / 1024).toFixed(2);
+                console.log(`Image Base64 size: ${dataSizeMB} MB sent to Gemini.`);
+                if (dataSizeMB > 4) { 
+                    console.warn("WARNING: Base64 size is large (>4MB). This may be causing the 'Something went wrong' API error due to payload limits.");
+                }
+                // --- END DEBUG LOGGING ---
+
+
+                document.getElementById('status').textContent = 'Sending to Gemini...';
+                // Pass the inspiration text to the AI function
+                const suggestions = await getGeminiSuggestions(base64, mimeType, inspirationText);
+
+                // Store results globally and display the default language (English)
+                lastSuggestions = suggestions;
+                currentLanguage = 'en'; // Ensure we default back to EN after a new analysis
+                displayResults(lastSuggestions, currentLanguage, lastLink); 
+                
+                document.getElementById('status').textContent = '✅ Complete';
+                document.getElementById('status').classList.replace('text-blue-500', 'text-green-600');
+                document.getElementById('row-0').classList.replace('bg-yellow-50', 'bg-white');
+
+                // Store the full multilingual result in Firestore, including the inspiration text
+                const docRef = doc(db, `artifacts/${appId}/users/${userId}/single_photo_suggestions`, lastDocId);
+                await setDoc(docRef, {
+                    ...lastSuggestions,
+                    inputLink: lastLink,
+                    inspiration: inspirationText, // NEW FIELD SAVED TO HISTORY
+                    processedAt: Timestamp.now() 
+                });
+
+            } catch (error) {
+                console.error("Processing error:", error);
+                document.getElementById('title-output').textContent = 'Failed';
+                document.getElementById('tags-output').textContent = 'See console for error.';
+                document.getElementById('status').innerHTML = error.message.includes('API Key Required') ? error.message : '❌ Error';
+                document.getElementById('status').classList.replace('text-blue-500', 'text-red-600');
+                document.getElementById('row-0').classList.replace('bg-yellow-50', 'bg-red-50');
+            }
+
+            setLoading(false, 'Processing Complete!');
+        }
+
+        // Initialize on load
+        initializeFirebase();
+
+    </script>
+</body>
+</html>
