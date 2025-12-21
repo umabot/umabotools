@@ -79,12 +79,6 @@
             <h1 class="text-3xl sm:text-4xl font-extrabold text-blue-700 mb-2">GenAI Photo Tagger</h1>
             <p class="text-gray-600">Enter a photo URL, and Gemini Vision will generate descriptive tags and a catchy title for it.</p>
             
-            <!-- Auth Status/Login Container -->
-            <div id="authContainer" class="mt-4">
-                <p class="text-sm text-red-500">Authentication failed or waiting...</p>
-            </div>
-            <!-- End Auth Status/Login Container -->
-            
             <!-- API Key Management Container -->
             <div id="apiKeyContainer" class="mt-4"></div>
             <!-- End API Key Management Container -->
@@ -164,19 +158,25 @@
 
             <!-- History Content -->
             <div id="historyContent" class="hidden">
-                <!-- Language Selector Flags for History -->
-                <div id="historyLanguageSelector" class="flex space-x-4 mb-4 text-3xl">
-                    <button id="history-flag-en" onclick="switchLanguage('en')" class="lang-button active" title="English">
-                        🇬🇧
-                    </button>
-                    <button id="history-flag-fr" onclick="switchLanguage('fr')" class="lang-button" title="Français">
-                        🇫🇷
-                    </button>
-                    <button id="history-flag-es" onclick="switchLanguage('es')" class="lang-button" title="Español">
-                        🇪🇸
+                <!-- Language Selector and Clear History -->
+                <div class="flex justify-between items-center mb-4">
+                    <div id="historyLanguageSelector" class="flex space-x-4 text-3xl">
+                        <button id="history-flag-en" onclick="switchLanguage('en')" class="lang-button active" title="English">
+                            🇬🇧
+                        </button>
+                        <button id="history-flag-fr" onclick="switchLanguage('fr')" class="lang-button" title="Français">
+                            🇫🇷
+                        </button>
+                        <button id="history-flag-es" onclick="switchLanguage('es')" class="lang-button" title="Español">
+                            🇪🇸
+                        </button>
+                    </div>
+                    <button onclick="clearHistory()" 
+                        class="px-4 py-2 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition duration-150 font-semibold">
+                        🗑️ Clear History
                     </button>
                 </div>
-                <!-- End Language Selector -->
+                <!-- End Language Selector and Clear History -->
                 <div id="historyListContainer" class="max-h-96 overflow-y-auto custom-scrollbar border border-gray-300 rounded-lg">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -197,37 +197,18 @@
         </section>
     </div>
 
-    <!-- Firebase and Application Logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // CORRECTED IMPORTS: Use OAuthProvider for Microsoft/Azure AD
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, OAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, Timestamp, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // IMPORTANT: Global variables for Canvas environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        let db;
-        let auth;
-        let userId = null;
-        let isAuthReady = false;
-        
+    <!-- Application Logic -->
+    <script>
         // Global State for Language and Results
+        let userId = 'local-user'; // Static ID for localStorage
         let currentLanguage = 'en'; // Default language
         let lastSuggestions = null;
         let lastLink = null;
         let lastDocId = null;
-        let historyData = []; // Array to store history from Firestore
-
-
-        setLogLevel('debug'); // Enable detailed Firebase logging
+        let historyData = []; // Array to store history from localStorage
 
         const loadingOverlay = document.getElementById('loadingOverlay');
         const loadingText = document.getElementById('loadingText');
-        const authContainer = document.getElementById('authContainer'); // Updated reference
         const processButton = document.getElementById('processButton');
         const resultsBody = document.getElementById('resultsBody');
         const historyBody = document.getElementById('historyBody');
@@ -235,16 +216,12 @@
         const historyContent = document.getElementById('historyContent');
         const analysisTab = document.getElementById('analysisTab');
         const historyTab = document.getElementById('historyTab');
-        const inspirationInput = document.getElementById('inspirationInput'); // New reference
+        const inspirationInput = document.getElementById('inspirationInput');
 
         // History Header references
         const historyTitleHeader = document.getElementById('historyTitleHeader');
         const historyTagsHeader = document.getElementById('historyTagsHeader');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
-
-        const googleProvider = new GoogleAuthProvider();
-        // CORRECTED: Instantiate generic OAuthProvider for Microsoft
-        const microsoftProvider = new OAuthProvider('microsoft.com');
 
 
         /**
@@ -303,51 +280,65 @@
             }
         }
 
+        /**
+         * Save analysis result to localStorage history
+         */
+        function saveToHistory(suggestions, link, inspiration) {
+            const historyKey = 'photo_tagger_history';
+            const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+            
+            const newEntry = {
+                id: crypto.randomUUID(),
+                ...suggestions,
+                inputLink: link,
+                inspiration: inspiration,
+                processedAt: new Date().toISOString()
+            };
+            
+            history.unshift(newEntry);
+            
+            // Limit to 50 entries
+            if (history.length > 50) {
+                history.splice(50);
+            }
+            
+            localStorage.setItem(historyKey, JSON.stringify(history));
+            historyData = history;
+        }
+
+        /**
+         * Load history from localStorage
+         */
+        function loadHistory() {
+            const historyKey = 'photo_tagger_history';
+            const storedHistory = JSON.parse(localStorage.getItem(historyKey) || '[]');
+            
+            // Convert ISO string dates to Date objects for consistency
+            historyData = storedHistory.map(item => ({
+                ...item,
+                processedAt: item.processedAt ? { toDate: () => new Date(item.processedAt) } : null
+            }));
+            
+            renderHistory();
+        }
+
+        /**
+         * Clear all history
+         */
+        window.clearHistory = function() {
+            if (confirm('Are you sure you want to clear all history? This cannot be undone.')) {
+                localStorage.removeItem('photo_tagger_history');
+                historyData = [];
+                renderHistory();
+                alert('History cleared successfully!');
+            }
+        }
 
         function setLoading(isLoading, message = 'Loading...') {
             loadingText.textContent = message;
             loadingOverlay.classList.toggle('hidden', !isLoading);
             processButton.disabled = isLoading;
-            inspirationInput.disabled = isLoading; // Disable inspiration input while processing
-        }
-
-        /**
-         * Renders the authentication status (Logged In, Guest, or Login Buttons).
-         */
-        function renderAuthStatus(user) {
-            if (user && user.isAnonymous === false) {
-                // Logged in with a real account (SSO or Email)
-                const emailOrName = user.email || user.displayName || 'Verified User';
-                authContainer.innerHTML = `
-                    <div class="flex items-center justify-between bg-green-50 p-3 rounded-lg border border-green-200">
-                        <p class="text-sm text-green-700 font-medium truncate">Logged in as: <span class="font-bold">${emailOrName}</span> (ID: ${user.uid})</p>
-                        <button onclick="signOutUser()" class="text-red-500 hover:text-red-700 text-sm font-semibold ml-4 flex-shrink-0 transition duration-150">Sign Out</button>
-                    </div>
-                    <p class="mt-2 text-xs text-gray-500">App ID: ${appId}</p>
-                `;
-            } else if (user && user.isAnonymous === true) {
-                // Logged in anonymously (initial state in this environment)
-                authContainer.innerHTML = `
-                    <div class="flex flex-wrap items-center gap-3">
-                        <p class="text-sm text-yellow-700 font-medium bg-yellow-50 p-3 rounded-lg border border-yellow-200 flex-shrink-0">
-                            Guest Mode (ID: ${user.uid})
-                        </p>
-                        <span class="text-sm text-gray-600">Sign in to save results:</span>
-                        <button onclick="signInWithGoogle()" class="sso-btn google-btn">
-                            <img src="https://www.gstatic.com/images/branding/product/2x/google_for_developers_64dp.png" alt="Google" class="w-4 h-4 mr-2">
-                            Google
-                        </button>
-                        <button onclick="signInWithMicrosoft()" class="sso-btn microsoft-btn">
-                            <img src="https://placehold.co/16x16/0078D4/ffffff?text=M" alt="Microsoft" class="w-4 h-4 mr-2">
-                            Microsoft
-                        </button>
-                    </div>
-                    <p class="mt-2 text-xs text-gray-500">App ID: ${appId}</p>
-                `;
-            } else {
-                 // Not authenticated (Should be a rare state after init)
-                 authContainer.innerHTML = `<p class="text-sm text-red-500">Authentication failed or waiting...</p>`;
-            }
+            inspirationInput.disabled = isLoading;
         }
         
         /**
@@ -361,7 +352,9 @@
                 contents: [{ parts: [{ text: prompt }] }]
             };
 
-            const apiKey = "";
+            const apiKey = getApiKey();
+            if (!apiKey) return defaultInspiration;
+            
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
             try {
@@ -371,103 +364,38 @@
                     body: JSON.stringify(payload)
                 });
                 const result = await response.json();
-                // Sanitize the generated text to remove quotes and special characters that might break the subsequent JSON payload
                 const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim().replace(/['"~]/g, '') || defaultInspiration;
                 return text;
-
             } catch (error) {
                 console.warn("Failed to fetch inspiration prompt:", error);
                 return defaultInspiration;
             }
         }
 
-
         /**
-         * Initializes Firebase and authenticates the user.
+         * Initialize app without Firebase
          */
-        async function initializeFirebase() {
-            setLoading(true, 'Initializing Firebase...');
+        async function initializeApp() {
+            setLoading(true, 'Initializing app...');
+            
             try {
-                if (!firebaseConfig) throw new Error("Firebase configuration not found.");
-
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        isAuthReady = true;
-                        
-                        // Fetch inspiration after auth is complete
-                        inspirationInput.value = await getInspiration();
-                        inspirationInput.placeholder = "Enter your inspiration...";
-
-                        // Render API key management UI
-                        apiKeyContainer.innerHTML = renderApiKeyInput();
-
-                        fetchHistory(); // Start listening to history after auth
-                        renderAuthStatus(user);
-                        setLoading(false);
-                    } else {
-                        // Attempt environment sign-in only if no user exists
-                        if (initialAuthToken) {
-                            await signInWithCustomToken(auth, initialAuthToken);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    }
-                });
-
-            } catch (error) {
-                console.error("Firebase initialization or authentication failed:", error);
-                authContainer.innerHTML = `<p class="text-sm text-red-700 font-bold">CRITICAL AUTH ERROR: ${error.message}</p>`;
+                // Render API key management UI
+                apiKeyContainer.innerHTML = renderApiKeyInput();
+                
+                // Load history from localStorage
+                loadHistory();
+                
+                // Fetch initial inspiration
+                const inspiration = await getInspiration();
+                inspirationInput.value = inspiration;
+                inspirationInput.placeholder = "Enter your inspiration...";
+                inspirationInput.disabled = false;
+                
                 setLoading(false);
-            }
-        }
-
-        /**
-         * Handles signing in with Google.
-         */
-        window.signInWithGoogle = async function() {
-            setLoading(true, 'Signing in with Google...');
-            try {
-                await signInWithPopup(auth, googleProvider);
-                // Auth state change listener handles the rest
             } catch (error) {
-                console.error("Google Sign-In Failed:", error);
+                console.error("App initialization failed:", error);
                 setLoading(false);
-            }
-        }
-
-        /**
-         * Handles signing in with Microsoft.
-         */
-        window.signInWithMicrosoft = async function() {
-            setLoading(true, 'Signing in with Microsoft...');
-            try {
-                // Now using the generic OAuthProvider correctly configured for Microsoft
-                await signInWithPopup(auth, microsoftProvider);
-                // Auth state change listener handles the rest
-            } catch (error) {
-                console.error("Microsoft Sign-In Failed:", error);
-                setLoading(false);
-            }
-        }
-
-        /**
-         * Handles signing out the current user.
-         */
-        window.signOutUser = async function() {
-            setLoading(true, 'Signing out...');
-            try {
-                await signOut(auth);
-                // Force anonymous sign-in immediately after signing out a real user
-                await signInAnonymously(auth);
-                // Auth state change listener handles the status update
-            } catch (error) {
-                console.error("Sign-Out Failed:", error);
-                setLoading(false);
+                alert('Failed to initialize app. Please refresh the page.');
             }
         }
 
@@ -512,37 +440,6 @@
             }
         }
         
-        /**
-         * Fetches and listens to real-time history updates from Firestore.
-         */
-        function fetchHistory() {
-            if (!isAuthReady || !userId) return;
-
-            const historyCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/single_photo_suggestions`);
-            
-            // Use query to listen to the collection
-            const q = query(historyCollectionRef); 
-
-            onSnapshot(q, (snapshot) => {
-                historyData = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    historyData.push({ id: doc.id, ...data });
-                });
-
-                // Sort the history by time (newest first)
-                historyData.sort((a, b) => (b.processedAt?.seconds || 0) - (a.processedAt?.seconds || 0));
-
-                // Only render if the history tab is active
-                if (!historyContent.classList.contains('hidden')) {
-                    renderHistory();
-                }
-            }, (error) => {
-                console.error("Error fetching history:", error);
-                historyBody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-red-500">Failed to load history: ${error.message}</td></tr>`;
-            });
-        }
-
         /**
          * Renders the history data into the history table using the current global language.
          */
@@ -684,11 +581,13 @@
             };
 
             // Priority: Canvas injected key > localStorage > empty (prompt user)
-            const apiKey = getApiKey() || ""; // Canvas will inject API Key if empty string
+            const apiKey = getApiKey() || "";
             
             if (!apiKey) {
                 throw new Error('⚠️ API Key Required - Please configure your Gemini API key above. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 underline">Get a free API key</a>');
             }
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             
             // Placeholder for structured error response
             const structuredError = {
@@ -796,13 +695,6 @@
          * Main function to process the single URL input.
          */
         window.processData = async function() {
-            if (!isAuthReady) {
-                const errorMessage = "Authentication is not yet complete. Please wait a moment and try again.";
-                console.error(errorMessage);
-                resultsBody.innerHTML = `<tr id="initialRow"><td colspan="4" class="py-4 text-center text-red-500">${errorMessage}</td></tr>`;
-                return;
-            }
-
             const link = document.getElementById('dataInput').value.trim();
             if (!link) {
                 const errorMessage = "Please enter a valid photo URL.";
@@ -861,14 +753,13 @@
                 document.getElementById('status').classList.replace('text-blue-500', 'text-green-600');
                 document.getElementById('row-0').classList.replace('bg-yellow-50', 'bg-white');
 
-                // Store the full multilingual result in Firestore, including the inspiration text
-                const docRef = doc(db, `artifacts/${appId}/users/${userId}/single_photo_suggestions`, lastDocId);
-                await setDoc(docRef, {
-                    ...lastSuggestions,
-                    inputLink: lastLink,
-                    inspiration: inspirationText, // NEW FIELD SAVED TO HISTORY
-                    processedAt: Timestamp.now() 
-                });
+                // Save to localStorage instead of Firestore
+                saveToHistory(lastSuggestions, lastLink, inspirationText);
+                
+                // Update history view if it's active
+                if (!historyContent.classList.contains('hidden')) {
+                    renderHistory();
+                }
 
             } catch (error) {
                 console.error("Processing error:", error);
@@ -883,7 +774,7 @@
         }
 
         // Initialize on load
-        initializeFirebase();
+        initializeApp();
 
     </script>
 </body>
