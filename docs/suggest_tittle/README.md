@@ -32,9 +32,13 @@ Possible error returns:
 1.  Open your Google Sheet.
 2.  Go to **Extensions** > **Apps Script**.
 3.  Copy the `SUGGEST_TITLE` function code into the script editor.
-4.  **Important:** You must replace `'YOUR_API_KEY_HERE'` in the code with your actual Google Gemini API key.
+4.  **Important:** You must setup in Project Properties the value of API_KEY
     ```javascript
-    const API_KEY = 'YOUR_API_KEY_HERE'.trim();
+    // 1. Setup
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const apiKey = scriptProperties.getProperty('API_KEY');
+  // Changed to 2.5-flash
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
     ```
 5.  Save the script.
 

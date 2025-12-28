@@ -9,10 +9,10 @@ function SUGGEST_TITLE(imageUrl, language = 'en') {
   if (!imageUrl) return "No URL provided";
   
   // 1. Setup
-  const API_KEY = 'YOUR_API_KEY_HERE'.trim(); // <-- Replace with your Gemini API Key
-  // Changed to Gemini 2.5 flash preview
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const apiKey = scriptProperties.getProperty('API_KEY');
+  // Changed to 2.5-flash
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
   try {
     const response = UrlFetchApp.fetch(imageUrl, {
