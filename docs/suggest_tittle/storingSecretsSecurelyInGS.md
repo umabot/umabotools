@@ -11,13 +11,13 @@ Depending on your use case, you should choose the storage method that matches yo
 | GCP Secret Manager | Enterprise apps requiring auditing, rotation, and high security. | Maximum | Managed via IAM permissions. |
 | Protected Sheet | Beginners or simple mockups. | Low | Sheet owner (risky if not hidden). |
 
-## 2. The Reusable Secrets Manager Pattern
-Instead of writing logic every time you need a key, use this reusable "Getter" function. It automatically handles the check, the prompt, and the storage.
+## 2. The Menu-Based Secrets Setup Pattern
+The recommended approach is to use a menu-based setup function to collect and store secrets, then access them directly in your functions. This pattern works for both custom functions and regular functions.
 
 ### ⚠️ Important: Custom Functions Limitation
 **Custom functions** (functions with `@customfunction` tag used in spreadsheet formulas) **cannot call `SpreadsheetApp.getUi()`**. They run in a restricted context that doesn't allow UI interactions.
 
-**Solution**: Use a menu-based setup function to store secrets, then access them directly in custom functions:
+**Solution**: Use a menu-based setup function to store secrets, then access them directly in all functions:
 
 ```javascript
 /**
@@ -64,54 +64,17 @@ function MY_CUSTOM_FUNCTION(param) {
   
   // Use apiKey for your logic...
 }
-```
 
-### The Code Implementation (For Regular Functions Only)
-Copy this into your script for **non-custom functions** that can show UI prompts:
-
-```javascript
 /**
- * A central manager to get secrets. 
- * If the secret isn't found, it prompts the user to enter it.
- * * @param {string} keyName The name of the property (e.g., 'OPENAI_API_KEY')
- * @param {boolean} isUserSpecific If true, uses UserProperties (private). If false, uses ScriptProperties (shared).
- * @returns {string|null} The secret value, or null if the user cancelled.
- */
-function getOrPromptSecret(keyName, isUserSpecific = true) {
-  const service = isUserSpecific ? PropertiesService.getUserProperties() : PropertiesService.getScriptProperties();
-  let secret = service.getProperty(keyName);
-
-  if (secret) return secret;
-
-  // Prompt the user if missing
-  const ui = SpreadsheetApp.getUi();
-  const response = ui.prompt(
-    'Setup Required',
-    `Please enter your value for: ${keyName}\n(This will be saved ${isUserSpecific ? 'privately to your account' : 'for all editors'}).`,
-    ui.ButtonSet.OK_CANCEL
-  );
-
-  if (response.getSelectedButton() == ui.Button.OK) {
-    const input = response.getResponseText().trim();
-    if (input) {
-      service.setProperty(keyName, input);
-      return input;
-    }
-  }
-  
-  return null;
-}
-```
-
-Example Usage
-
-```javascript
-/**
- * Example Usage:
+ * Regular function that also accesses the stored secret directly
  */
 function runMyTool() {
-  const apiKey = getOrPromptSecret('MY_API_KEY'); // Defaults to private UserProperty
-  if (!apiKey) return; // Stop if user cancelled prompt
+  const apiKey = PropertiesService.getUserProperties().getProperty('MY_API_KEY');
+  
+  if (!apiKey) {
+    SpreadsheetApp.getUi().alert("⚠️ Setup Required: Go to '🔐 API Settings' menu → 'Setup API Key'");
+    return;
+  }
 
   // Proceed with your logic...
   console.log("Task running with authenticated key.");
@@ -191,7 +154,8 @@ function MY_FUNCTION() {
 
 // ❌ WRONG: Custom function tries to show UI
 function MY_FUNCTION() {
-  const key = getOrPromptSecret('API_KEY'); // Will fail!
+  const ui = SpreadsheetApp.getUi(); // Will fail in custom functions!
+  const response = ui.prompt('Enter API Key:');
 }
 ```
 
