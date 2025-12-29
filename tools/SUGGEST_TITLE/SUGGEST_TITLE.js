@@ -1,4 +1,78 @@
 /**
+ * Creates a custom menu when the spreadsheet opens
+ */
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('🔐 API Settings')
+    .addItem('Setup API Key', 'setupApiKey')
+    .addItem('Clear Stored Secrets', 'resetMySecrets')
+    .addToUi();
+}
+
+/**
+ * Setup function to prompt for and store the API key
+ */
+function setupApiKey() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.prompt(
+    'Setup Required',
+    'Please enter your Google AI Studio API Key:',
+    ui.ButtonSet.OK_CANCEL
+  );
+  
+  if (response.getSelectedButton() == ui.Button.OK) {
+    const input = response.getResponseText().trim();
+    if (input) {
+      PropertiesService.getUserProperties().setProperty('GOOGLE_AI_STUDIO_API_KEY', input);
+      ui.alert('✅ API Key saved successfully!');
+    } else {
+      ui.alert('❌ No API key entered.');
+    }
+  }
+}
+
+/**
+ * A central manager to get secrets. 
+ * If the secret isn't found, it prompts the user to enter it.
+ * NOTE: Cannot be used in @customfunction context - use direct PropertiesService access instead.
+ * @param {string} keyName The name of the property (e.g., 'GOOGLE_AI_STUDIO_API_KEY')
+ * @param {boolean} isUserSpecific If true, uses UserProperties (private). If false, uses ScriptProperties (shared).
+ * @returns {string|null} The secret value, or null if the user cancelled.
+ */
+function getOrPromptSecret(keyName, isUserSpecific = true) {
+  const service = isUserSpecific ? PropertiesService.getUserProperties() : PropertiesService.getScriptProperties();
+  let secret = service.getProperty(keyName);
+
+  if (secret) return secret;
+
+  // Prompt the user if missing
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.prompt(
+    'Setup Required',
+    `Please enter your value for: ${keyName}\n(This will be saved ${isUserSpecific ? 'privately to your account' : 'for all editors'}).`,
+    ui.ButtonSet.OK_CANCEL
+  );
+
+  if (response.getSelectedButton() == ui.Button.OK) {
+    const input = response.getResponseText().trim();
+    if (input) {
+      service.setProperty(keyName, input);
+      return input;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Clear settings utility
+ */
+function resetMySecrets() {
+  PropertiesService.getUserProperties().deleteAllProperties();
+  SpreadsheetApp.getUi().alert('✅ Your private credentials have been cleared.');
+}
+
+/**
  * Generates a title for a Flickr photo using Gemini Vision.
  * * @param {string} imageUrl The URL of the photo (thumbnail or direct link).
  * @param {string} language Optional: 'en', 'es', or 'fr'. Defaults to 'en'.
@@ -8,9 +82,14 @@
 function SUGGEST_TITLE(imageUrl, language = 'en') {
   if (!imageUrl) return "No URL provided";
   
-  // 1. Setup
-  const scriptProperties = PropertiesService.getScriptProperties();
-  const apiKey = scriptProperties.getProperty('API_KEY');
+  // 1. Setup - Get API key securely (no UI prompts in custom functions)
+  const service = PropertiesService.getUserProperties();
+  const apiKey = service.getProperty('GOOGLE_AI_STUDIO_API_KEY');
+  
+  if (!apiKey) {
+    return "⚠️ Setup Required: Go to '🔐 API Settings' menu → 'Setup API Key'";
+  }
+  
   // Changed to 2.5-flash
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
