@@ -32,39 +32,6 @@ function setupApiKey() {
 }
 
 /**
- * A central manager to get secrets. 
- * If the secret isn't found, it prompts the user to enter it.
- * NOTE: Cannot be used in @customfunction context - use direct PropertiesService access instead.
- * @param {string} keyName The name of the property (e.g., 'GOOGLE_AI_STUDIO_API_KEY')
- * @param {boolean} isUserSpecific If true, uses UserProperties (private). If false, uses ScriptProperties (shared).
- * @returns {string|null} The secret value, or null if the user cancelled.
- */
-function getOrPromptSecret(keyName, isUserSpecific = true) {
-  const service = isUserSpecific ? PropertiesService.getUserProperties() : PropertiesService.getScriptProperties();
-  let secret = service.getProperty(keyName);
-
-  if (secret) return secret;
-
-  // Prompt the user if missing
-  const ui = SpreadsheetApp.getUi();
-  const response = ui.prompt(
-    'Setup Required',
-    `Please enter your value for: ${keyName}\n(This will be saved ${isUserSpecific ? 'privately to your account' : 'for all editors'}).`,
-    ui.ButtonSet.OK_CANCEL
-  );
-
-  if (response.getSelectedButton() == ui.Button.OK) {
-    const input = response.getResponseText().trim();
-    if (input) {
-      service.setProperty(keyName, input);
-      return input;
-    }
-  }
-  
-  return null;
-}
-
-/**
  * Clear settings utility
  */
 function resetMySecrets() {
