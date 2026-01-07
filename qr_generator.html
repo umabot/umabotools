@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal QR Code Generator</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .qr-container canvas, .qr-container img {
+            margin: 0 auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8 px-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">QR Code Studio</h1>
+            <p class="text-slate-600">Create production-ready QR codes for URLs, text, and contacts.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column: Input -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <!-- Tabs -->
+                <div class="flex border-b border-slate-200 mb-6">
+                    <button onclick="switchTab('url')" id="tab-url" class="tab-active flex-1 py-3 px-2 flex items-center justify-center gap-2 font-medium transition-all">
+                        <i data-lucide="link" class="w-4 h-4"></i> URL
+                    </button>
+                    <button onclick="switchTab('text')" id="tab-text" class="flex-1 py-3 px-2 flex items-center justify-center gap-2 font-medium text-slate-500 transition-all">
+                        <i data-lucide="align-left" class="w-4 h-4"></i> Text
+                    </button>
+                    <button onclick="switchTab('vcard')" id="tab-vcard" class="flex-1 py-3 px-2 flex items-center justify-center gap-2 font-medium text-slate-500 transition-all">
+                        <i data-lucide="user" class="w-4 h-4"></i> Contact
+                    </button>
+                </div>
+
+                <!-- Form Content -->
+                <div id="form-container">
+                    <!-- URL Section -->
+                    <div id="section-url" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Website URL</label>
+                            <input type="url" id="input-url" placeholder="https://example.com" 
+                                class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <p class="text-xs text-slate-500 mt-2">Start with http:// or https:// for direct mobile navigation.</p>
+                        </div>
+                    </div>
+
+                    <!-- Text Section -->
+                    <div id="section-text" class="hidden space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Message</label>
+                            <textarea id="input-text" rows="4" placeholder="Enter your text message here..." 
+                                class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- vCard Section -->
+                    <div id="section-vcard" class="hidden space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">First Name</label>
+                                <input type="text" id="v-fname" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Last Name</label>
+                                <input type="text" id="v-lname" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Organization</label>
+                            <input type="text" id="v-org" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                            <input type="tel" id="v-phone" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                            <input type="email" id="v-email" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customization -->
+                <div class="mt-8 pt-6 border-t border-slate-100">
+                    <h3 class="text-sm font-semibold text-slate-900 mb-4">Appearance</h3>
+                    <div class="flex items-center gap-6">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 uppercase mb-2">Color</label>
+                            <input type="color" id="qr-color" value="#000000" class="h-10 w-20 cursor-pointer rounded">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 uppercase mb-2">Size</label>
+                            <select id="qr-size" class="p-2 bg-slate-50 border border-slate-300 rounded-lg outline-none text-sm">
+                                <option value="128">Small (128x)</option>
+                                <option value="256" selected>Medium (256x)</option>
+                                <option value="512">Large (512x)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="generateQR()" class="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i> Generate QR Code
+                </button>
+            </div>
+
+            <!-- Right Column: Result -->
+            <div class="flex flex-col items-center justify-center">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 w-full text-center">
+                    <div id="qrcode" class="qr-container flex justify-center mb-6 min-h-[256px]">
+                        <!-- QR Code will be injected here -->
+                    </div>
+                    
+                    <div id="qr-metadata" class="mb-6 hidden">
+                        <p class="text-sm font-medium text-slate-900" id="qr-title-label"></p>
+                        <p class="text-xs text-slate-500 truncate max-w-xs mx-auto" id="qr-content-label"></p>
+                    </div>
+
+                    <div id="action-buttons" class="hidden space-y-3">
+                        <button onclick="downloadQR()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all">
+                            <i data-lucide="download" class="w-4 h-4"></i> Download Image
+                        </button>
+                        <button onclick="copyToClipboard()" class="w-full border border-slate-200 hover:bg-slate-50 text-slate-700 py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all">
+                            <i data-lucide="copy" class="w-4 h-4"></i> Copy Link
+                        </button>
+                    </div>
+
+                    <div id="empty-state" class="text-slate-400 py-12">
+                        <i data-lucide="qr-code" class="w-16 h-16 mx-auto mb-4 opacity-20"></i>
+                        <p>Fill in the details to generate your QR code</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-xs text-slate-400 text-center">
+                    Standard ISO/IEC 18004 compliant QR generator.<br>Works with iOS Camera and Android Lens.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl transition-all opacity-0 translate-y-10 pointer-events-none flex items-center gap-2">
+        <i data-lucide="check-circle-2" class="w-4 h-4 text-green-400"></i>
+        <span id="toast-message">Copied to clipboard</span>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        let currentTab = 'url';
+        let qrcodeInstance = null;
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabs = ['url', 'text', 'vcard'];
+            
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const section = document.getElementById(`section-${t}`);
+                if (t === tab) {
+                    btn.classList.add('tab-active');
+                    btn.classList.remove('text-slate-500');
+                    section.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('tab-active');
+                    btn.classList.add('text-slate-500');
+                    section.classList.add('hidden');
+                }
+            });
+        }
+
+        function generateQR() {
+            let content = "";
+            let labelTitle = "";
+            let labelDisplayContent = "";
+            
+            if (currentTab === 'url') {
+                const url = document.getElementById('input-url').value.trim();
+                if (!url) return showToast("Please enter a URL", "error");
+                
+                content = url;
+                if (!/^https?:\/\//i.test(content)) {
+                    content = 'https://' + content;
+                }
+                labelTitle = "URL QR Code";
+                labelDisplayContent = content;
+            } else if (currentTab === 'text') {
+                content = document.getElementById('input-text').value.trim();
+                if (!content) return showToast("Please enter some text", "error");
+                labelTitle = "Text QR Code";
+                labelDisplayContent = content;
+            } else if (currentTab === 'vcard') {
+                const fname = document.getElementById('v-fname').value.trim();
+                const lname = document.getElementById('v-lname').value.trim();
+                const org = document.getElementById('v-org').value.trim();
+                const phone = document.getElementById('v-phone').value.trim();
+                const email = document.getElementById('v-email').value.trim();
+
+                if (!fname && !lname) return showToast("Please enter at least a name", "error");
+
+                content = `BEGIN:VCARD\nVERSION:3.0\nN:${lname};${fname};;;\nFN:${fname} ${lname}\nORG:${org}\nTEL;TYPE=CELL:${phone}\nEMAIL:${email}\nEND:VCARD`;
+                labelTitle = "Contact QR Code";
+                labelDisplayContent = `${fname} ${lname}`.trim();
+            }
+
+            // Clear previous QR
+            const container = document.getElementById('qrcode');
+            container.innerHTML = "";
+            
+            const size = parseInt(document.getElementById('qr-size').value);
+            const color = document.getElementById('qr-color').value;
+
+            // Generate new QR
+            qrcodeInstance = new QRCode(container, {
+                text: content,
+                width: size,
+                height: size,
+                colorDark : color,
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            // Update UI
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('qr-metadata').classList.remove('hidden');
+            document.getElementById('action-buttons').classList.remove('hidden');
+            document.getElementById('qr-title-label').innerText = labelTitle;
+            document.getElementById('qr-content-label').innerText = labelDisplayContent;
+            
+            showToast("QR Code generated!");
+        }
+
+        function downloadQR() {
+            const qrImg = document.querySelector('#qrcode img');
+            if (!qrImg) return;
+            
+            const link = document.createElement('a');
+            link.download = `qrcode-${Date.now()}.png`;
+            link.href = qrImg.src;
+            link.click();
+        }
+
+        function copyToClipboard() {
+            let content = "";
+            if (currentTab === 'url') {
+                content = document.getElementById('input-url').value.trim();
+            } else if (currentTab === 'text') {
+                content = document.getElementById('input-text').value.trim();
+            } else {
+                const fname = document.getElementById('v-fname').value.trim();
+                const lname = document.getElementById('v-lname').value.trim();
+                content = `${fname} ${lname}`.trim() || "Contact Information";
+            }
+            
+            if (!content) return;
+
+            const tempInput = document.createElement("input");
+            tempInput.value = content;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            
+            showToast("Copied to clipboard!");
+        }
+
+        function showToast(message, type = "success") {
+            const toast = document.getElementById('toast');
+            const msgSpan = document.getElementById('toast-message');
+            msgSpan.innerText = message;
+            
+            toast.style.opacity = "1";
+            toast.style.transform = "translate(-50%, 0)";
+            
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translate(-50%, 10px)";
+            }, 3000);
+        }
+
+        // Handle Enter key for generation
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                generateQR();
+            }
+        });
+    </script>
+</body>
+</html>
