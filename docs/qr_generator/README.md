@@ -9,6 +9,25 @@ A lightweight, browser-based QR code generator that creates production-ready QR 
 - **URL**: Generate QR codes for website links. Automatically prepends `https://` if no protocol is specified.
 - **Text**: Encode plain text messages into scannable QR codes.
 - **Contact (vCard)**: Create QR codes containing contact information (name, organization, phone, email) in the standard vCard 3.0 format.
+- **WiFi**: Generate QR codes that allow instant WiFi network connection when scanned.
+
+### WiFi QR Code Options
+
+The WiFi QR code generator supports the following options:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| Network Name (SSID) | Yes | The name of the WiFi network |
+| Password | Conditional | Required for WPA/WPA2/WPA3 and WEP networks |
+| Security Type | Yes | WPA/WPA2/WPA3 (default), WEP, or None (Open Network) |
+| Hidden Network | No | Check if the network doesn't broadcast its SSID |
+
+**WiFi QR Code Format**: Uses the standard `WIFI:T:<security>;S:<ssid>;P:<password>;H:<hidden>;;` format recognized by iOS Camera, Android, and most QR readers.
+
+**Security Notes**:
+- Special characters in SSID and password (`;`, `:`, `\`, `"`) are automatically escaped.
+- Password field is disabled when "None (Open Network)" is selected.
+- Use the eye icon to toggle password visibility while entering credentials.
 
 ### Customization Options
 

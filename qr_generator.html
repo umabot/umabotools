@@ -64,6 +64,9 @@
                     <button onclick="switchTab('vcard')" id="tab-vcard" class="flex-1 py-3 px-2 flex items-center justify-center gap-2 font-medium text-slate-500 transition-all">
                         <i data-lucide="user" class="w-4 h-4"></i> Contact
                     </button>
+                    <button onclick="switchTab('wifi')" id="tab-wifi" class="flex-1 py-3 px-2 flex items-center justify-center gap-2 font-medium text-slate-500 transition-all">
+                        <i data-lucide="wifi" class="w-4 h-4"></i> WiFi
+                    </button>
                 </div>
 
                 <!-- Form Content -->
@@ -111,6 +114,38 @@
                             <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
                             <input type="email" id="v-email" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg outline-none">
                         </div>
+                    </div>
+
+                    <!-- WiFi Section -->
+                    <div id="section-wifi" class="hidden space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Network Name (SSID)</label>
+                            <input type="text" id="w-ssid" placeholder="MyWiFiNetwork" 
+                                class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                            <div class="relative">
+                                <input type="password" id="w-password" placeholder="Enter password" 
+                                    class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all pr-12">
+                                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                    <i data-lucide="eye" id="password-eye" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Security Type</label>
+                            <select id="w-security" onchange="updatePasswordField()" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg outline-none text-sm">
+                                <option value="WPA">WPA/WPA2/WPA3</option>
+                                <option value="WEP">WEP</option>
+                                <option value="nopass">None (Open Network)</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="w-hidden" class="w-4 h-4 rounded border-slate-300">
+                            <label for="w-hidden" class="text-sm text-slate-700">Hidden network</label>
+                        </div>
+                        <p class="text-xs text-slate-500">Scan with your phone camera to connect automatically.</p>
                     </div>
                 </div>
 
@@ -187,7 +222,7 @@
 
         function switchTab(tab) {
             currentTab = tab;
-            const tabs = ['url', 'text', 'vcard'];
+            const tabs = ['url', 'text', 'vcard', 'wifi'];
             
             tabs.forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
@@ -236,6 +271,26 @@
                 content = `BEGIN:VCARD\nVERSION:3.0\nN:${lname};${fname};;;\nFN:${fname} ${lname}\nORG:${org}\nTEL;TYPE=CELL:${phone}\nEMAIL:${email}\nEND:VCARD`;
                 labelTitle = "Contact QR Code";
                 labelDisplayContent = `${fname} ${lname}`.trim();
+            } else if (currentTab === 'wifi') {
+                const ssid = document.getElementById('w-ssid').value.trim();
+                const password = document.getElementById('w-password').value;
+                const security = document.getElementById('w-security').value;
+                const hidden = document.getElementById('w-hidden').checked;
+
+                if (!ssid) return showToast("Please enter a network name", "error");
+                if (security !== 'nopass' && !password) {
+                    return showToast("Please enter a password", "error");
+                }
+
+                // Escape special characters: \, ;, :, and "
+                const escapeWifi = (str) => str.replace(/[\\;,:"]/g, '\\$&');
+                
+                const hiddenStr = hidden ? 'H:true;' : '';
+                const passStr = security !== 'nopass' ? `P:${escapeWifi(password)};` : '';
+                
+                content = `WIFI:T:${security};S:${escapeWifi(ssid)};${passStr}${hiddenStr};`;
+                labelTitle = "WiFi QR Code";
+                labelDisplayContent = ssid;
             }
 
             // Clear previous QR
@@ -319,6 +374,36 @@
                 generateQR();
             }
         });
+
+        // Toggle password visibility
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('w-password');
+            const eyeIcon = document.getElementById('password-eye');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        // Update password field based on security type
+        function updatePasswordField() {
+            const security = document.getElementById('w-security').value;
+            const passwordInput = document.getElementById('w-password');
+            
+            if (security === 'nopass') {
+                passwordInput.disabled = true;
+                passwordInput.value = '';
+                passwordInput.placeholder = 'No password required';
+            } else {
+                passwordInput.disabled = false;
+                passwordInput.placeholder = 'Enter password';
+            }
+        }
     </script>
 </body>
 </html>
