@@ -182,7 +182,7 @@
                     
                     <div id="qr-metadata" class="mb-6 hidden">
                         <p class="text-sm font-medium text-slate-900" id="qr-title-label"></p>
-                        <p class="text-xs text-slate-500 truncate max-w-xs mx-auto" id="qr-content-label"></p>
+                        <p class="text-xs text-slate-500 line-clamp-3 max-w-xs mx-auto break-all" id="qr-content-label"></p>
                     </div>
 
                     <div id="action-buttons" class="hidden space-y-3">
@@ -273,9 +273,11 @@
                 labelDisplayContent = `${fname} ${lname}`.trim();
             } else if (currentTab === 'wifi') {
                 const ssid = document.getElementById('w-ssid').value.trim();
-                const password = document.getElementById('w-password').value;
                 const security = document.getElementById('w-security').value;
                 const hidden = document.getElementById('w-hidden').checked;
+                
+                // Only get password if security is NOT 'nopass'
+                const password = (security !== 'nopass') ? document.getElementById('w-password').value : '';
 
                 if (!ssid) return showToast("Please enter a network name", "error");
                 if (security !== 'nopass' && !password) {
@@ -324,8 +326,27 @@
             const qrImg = document.querySelector('#qrcode img');
             if (!qrImg) return;
             
+            // Create a friendlier filename based on context
+            let filenameSnippet = "qrcode";
+            if (currentTab === 'url') {
+                const url = document.getElementById('input-url').value;
+                try {
+                    filenameSnippet = new URL(url).hostname.replace(/\./g, '-');
+                } catch(e) {
+                    filenameSnippet = 'url';
+                }
+            } else if (currentTab === 'wifi') {
+                filenameSnippet = "wifi-" + document.getElementById('w-ssid').value.replace(/[^a-z0-9]/gi, '-');
+            } else if (currentTab === 'vcard') {
+                const fname = document.getElementById('v-fname').value.trim();
+                const lname = document.getElementById('v-lname').value.trim();
+                filenameSnippet = "contact-" + `${fname}-${lname}`.replace(/[^a-z0-9]/gi, '-');
+            } else if (currentTab === 'text') {
+                filenameSnippet = "text";
+            }
+
             const link = document.createElement('a');
-            link.download = `qrcode-${Date.now()}.png`;
+            link.download = `${filenameSnippet}-${Date.now()}.png`;
             link.href = qrImg.src;
             link.click();
         }
@@ -336,22 +357,40 @@
                 content = document.getElementById('input-url').value.trim();
             } else if (currentTab === 'text') {
                 content = document.getElementById('input-text').value.trim();
+            } else if (currentTab === 'wifi') {
+                const ssid = document.getElementById('w-ssid').value.trim();
+                const pass = document.getElementById('w-password').value;
+                const security = document.getElementById('w-security').value;
+                content = security !== 'nopass' 
+                    ? `Network: ${ssid}\nPassword: ${pass}` 
+                    : `Network: ${ssid}`;
             } else {
                 const fname = document.getElementById('v-fname').value.trim();
                 const lname = document.getElementById('v-lname').value.trim();
-                content = `${fname} ${lname}`.trim() || "Contact Information";
+                const phone = document.getElementById('v-phone').value.trim();
+                content = `${fname} ${lname}${phone ? ' - ' + phone : ''}`.trim() || "Contact Information";
             }
             
             if (!content) return;
 
-            const tempInput = document.createElement("input");
-            tempInput.value = content;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand("copy");
-            document.body.removeChild(tempInput);
-            
-            showToast("Copied to clipboard!");
+            // Modern clipboard API
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(content).then(() => {
+                    showToast("Copied to clipboard!");
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    showToast("Failed to copy", "error");
+                });
+            } else {
+                // Fallback for older browsers
+                const tempInput = document.createElement("input");
+                tempInput.value = content;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempInput);
+                showToast("Copied to clipboard!");
+            }
         }
 
         function showToast(message, type = "success") {
@@ -370,7 +409,9 @@
 
         // Handle Enter key for generation
         document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            // Don't trigger if the user is holding Shift (for new lines) 
+            // OR if the active element is a textarea
+            if (e.key === 'Enter' && !e.shiftKey && document.activeElement.tagName !== 'TEXTAREA') {
                 generateQR();
             }
         });
