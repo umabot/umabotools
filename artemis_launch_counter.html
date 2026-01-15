@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src https: data:; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
+    <title>Artemis II - Mission Countdown</title>
+    <style>
+        :root {
+            --nasa-blue: #0b3d91;
+            --nasa-red: #fc3d21;
+            --dark-bg: #05070a;
+            --card-bg: #1a1d23;
+            --text-light: #e0e0e0;
+            --gold: #ffcc00;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hero / Countdown Section */
+        header {
+            width: 100%;
+            padding: 60px 20px;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.85)), 
+                        url('https://images-assets.nasa.gov/image/KSC-20210907-PH-KLS01_0003/KSC-20210907-PH-KLS01_0003~large.jpg') 
+                        center/cover no-repeat fixed;
+            text-align: center;
+            border-bottom: 4px solid var(--nasa-blue);
+            box-shadow: inset 0 -50px 100px rgba(0,0,0,0.9);
+            transition: background 1s ease-in-out;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            color: white;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.9);
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--gold);
+            margin-bottom: 40px;
+            font-weight: bold;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+        }
+
+        /* Stopwatch Styling */
+        #countdown-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .time-box {
+            background: rgba(11, 61, 145, 0.75);
+            padding: 25px;
+            border-radius: 12px;
+            min-width: 110px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+        }
+
+        .time-val {
+            font-size: 3rem;
+            font-weight: 800;
+            display: block;
+            font-variant-numeric: tabular-nums;
+            color: white;
+        }
+
+        .time-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0.9;
+            color: var(--gold);
+        }
+
+        /* Local Time & Modal Trigger */
+        .time-info {
+            margin-top: 15px;
+            font-style: italic;
+            background: rgba(0,0,0,0.5);
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 30px;
+        }
+
+        .local-link {
+            color: var(--nasa-red);
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-bottom: 1px dashed var(--nasa-red);
+            transition: 0.3s;
+            margin-left: 10px;
+        }
+
+        .local-link:hover {
+            color: white;
+            border-bottom-color: white;
+        }
+
+        /* Mission Cards Section */
+        .content-section {
+            max-width: 1200px;
+            width: 90%;
+            margin: 40px auto;
+            flex: 1;
+        }
+
+        .section-title {
+            border-left: 5px solid var(--nasa-red);
+            padding-left: 15px;
+            margin-bottom: 35px;
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #2a2e35;
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            background: #23272e;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            border-color: var(--nasa-blue);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--gold);
+            font-size: 1.3rem;
+            line-height: 1.3;
+        }
+
+        .card p {
+            line-height: 1.6;
+            font-size: 0.95rem;
+            flex-grow: 1;
+            opacity: 0.85;
+        }
+
+        .card .source {
+            font-size: 0.75rem;
+            color: var(--nasa-red);
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .btn-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: white;
+            background: var(--nasa-blue);
+            padding: 10px 18px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            align-self: flex-start;
+            transition: 0.2s;
+        }
+
+        .btn-link:hover {
+            background: var(--nasa-red);
+        }
+
+        /* Footer Styling */
+        footer {
+            width: 100%;
+            padding: 30px 20px;
+            background: #0a0c10;
+            border-top: 1px solid #222;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        footer a {
+            color: var(--nasa-blue);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .photo-credit {
+            margin-top: 10px;
+            display: block;
+            color: #666;
+        }
+
+        /* Modal Styling */
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background: #1a1d23;
+            padding: 40px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 0 40px rgba(11, 61, 145, 0.4);
+            text-align: center;
+            border: 1px solid var(--nasa-blue);
+        }
+
+        .modal h3 { color: white; margin-top: 0; }
+
+        .modal input {
+            width: 100%;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #000;
+            color: white;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .modal button {
+            background: var(--nasa-red);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            margin-top: 20px;
+            display: block;
+            font-size: 0.9rem;
+            color: #888;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2.2rem; }
+            .time-val { font-size: 2rem; }
+            .time-box { min-width: 80px; padding: 15px; }
+            header { padding: 40px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="hero-header">
+        <h1>Artemis II Launch</h1>
+        <p class="subtitle">Humanity's First Crewed Moon Mission in 50 Years</p>
+        
+        <div id="countdown-container">
+            <div class="time-box"><span id="days" class="time-val">00</span><span class="time-label">Days</span></div>
+            <div class="time-box"><span id="hours" class="time-val">00</span><span class="time-label">Hrs</span></div>
+            <div class="time-box"><span id="minutes" class="time-val">00</span><span class="time-label">Min</span></div>
+            <div class="time-box"><span id="seconds" class="time-val">00</span><span class="time-label">Sec</span></div>
+        </div>
+
+        <div class="time-info">
+            Launch Target (CET): <span id="target-display" style="color:white; font-weight: bold;">Feb 6, 2026, 22:41:00</span>
+            <a class="local-link" onclick="openModal()">Convert to Local Time</a>
+        </div>
+        <div id="local-time-note" style="display:none; margin-top: 15px; font-size: 0.95rem; background: rgba(252, 61, 33, 0.2); padding: 5px 15px; border-radius: 15px; border: 1px solid var(--nasa-red);">
+            Your Selection: <span id="local-result" style="font-weight:bold; color: var(--gold);"></span>
+        </div>
+    </header>
+
+    <main class="content-section">
+        <h2 class="section-title">Mission Intelligence & Updates</h2>
+        <div class="cards-grid" id="news-grid">
+            <!-- Populated by JS -->
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Artemis Mission Tracker. Refresh the page for new mission insights.</p>
+        <p>Source Data: <a href="https://www.nasa.gov/mission/artemis-ii/" target="_blank">NASA Artemis II Official Page</a></p>
+        <span class="photo-credit" id="footer-photo-credit">
+            Hero Photo: <a href="https://images.nasa.gov/details-KSC-20210907-PH-KLS01_0003" target="_blank">SLS Rocket Integration</a> 
+            via <a href="https://images.nasa.gov/" target="_blank">NASA Images</a>
+        </span>
+    </footer>
+
+    <!-- Timezone Modal -->
+    <div id="modal-overlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h3>Global Launch Times</h3>
+            <p style="font-size: 0.95rem; opacity: 0.8; line-height: 1.5;">Check the launch time in your specific region.</p>
+            <input type="text" id="tz-input" placeholder="Start typing a city..." list="tz-list">
+            <datalist id="tz-list">
+                <!-- Dynamically populated by JS from CITY_CONFIG -->
+            </datalist>
+            <button onclick="updateLocalTZ()">Calculate</button>
+            <span class="modal-close" onclick="closeModal()">Close Window</span>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ==========================================
+         * 1. GLOBAL CONFIGURATION (EASY TO UPDATE)
+         * ==========================================
+         */
+        
+        // Target Launch Date in CET (Format YYYY-MM-DD:HH:mm:ss)
+        const LAUNCH_DATE_STR = "2026-02-06:22:41:00"; 
+
+        // EASY CITY UPDATE SECTION
+        // Add new cities here. Ensure 'tz' is a valid IANA timezone name.
+        const CITY_CONFIG = [
+            { name: "Buenos Aires, Argentina", tz: "America/Argentina/Buenos_Aires" },
+            { name: "Singapore, Singapore", tz: "Asia/Singapore" },
+            { name: "Sydney, Australia", tz: "Australia/Sydney" },
+            { name: "Tokyo, Japan", tz: "Asia/Tokyo" },
+            { name: "Noumea, New Caledonia", tz: "Pacific/Noumea" },
+            { name: "Darwin, Australia", tz: "Australia/Darwin" },
+            { name: "Hong Kong, Hong Kong", tz: "Asia/Hong_Kong" },
+            { name: "London, UK", tz: "Europe/London" },
+            { name: "Paris, France", tz: "Europe/Paris" },
+            { name: "New York, USA", tz: "America/New_York" },
+            { name: "Los Angeles, USA", tz: "America/Los_Angeles" },
+            { name: "Dubai, UAE", tz: "Asia/Dubai" }
+        ];
+
+        // ==========================================
+
+        // HERO PHOTO POOL
+        const photoPool = [
+            {
+                url: "https://images-assets.nasa.gov/image/KSC-20210907-PH-KLS01_0003/KSC-20210907-PH-KLS01_0003~large.jpg",
+                desc: "SLS Rocket & Orion Stage Adapter Integration",
+                link: "https://images.nasa.gov/details-KSC-20210907-PH-KLS01_0003"
+            },
+            {
+                url: "https://www.nasa.gov/wp-content/uploads/2023/07/ksc-20220614-ph-jbs01_0332orig.jpg",
+                desc: "Artemis I SLS in launch pad",
+                link: "https://www.nasa.gov/mission/artemis-ii/"
+            },
+            {
+                url: "https://www.nasa.gov/wp-content/uploads/2023/06/jsc2023e016431.jpg",
+                desc: "Artemis II crew",
+                link: "https://www.nasa.gov/mission/artemis-ii/"
+            },
+            {
+                url: "https://www.nasa.gov/wp-content/uploads/2023/05/cbt-in-firing-room-1.jpg",
+                desc: "Spaceport",
+                link: "https://www.nasa.gov/mission/artemis-ii/"
+            },
+            {
+                url: "https://www.nasa.gov/wp-content/uploads/2022/03/sls_-_resized.jpg",
+                desc: "SLS Rocket",
+                link: "https://www.nasa.gov/mission/artemis-ii/"
+            },
+            {
+                url: "https://www.nasa.gov/wp-content/uploads/2025/09/artist-concept-lunar-fly-by-8.jpg",
+                desc: "Orion capsule around the Moon",
+                link: "https://www.nasa.gov/mission/artemis-ii/"
+            }
+        ];
+
+        // NEWS POOL
+        const newsPool = [
+            {
+                source: "NASA Mission Control",
+                title: "Coverage, Briefing Set for NASA Artemis II Moon Rocket Roll to Pad",
+                text: "The 322-foot tall SLS rocket will emerge from the VAB this Saturday. Crawler-Transporter 2 will begin the 4-mile journey to the pad.",
+                link: "https://www.nasa.gov/news-release/coverage-briefing-set-for-nasas-artemis-ii-moon-rocket-roll-to-pad/"
+            },
+            {
+                source: "BBC Sky at Night",
+                title: "Crew to Carry Bone Marrow 'Avatars'",
+                text: "The mission will include the AVATAR experiment, using organ-on-a-chip technology to study how deep-space radiation affects human stem cells.",
+                link: "https://www.skyatnightmagazine.com/news/artemis-ii-bone-marrow-avatar-experiment"
+            },
+            {
+                source: "NASA Blogs",
+                title: "Wet Dress Rehearsal Procedures Finalized",
+                text: "Following rollout, the team will perform a full cryogenic loading of 700,000 gallons of fuel to validate ground systems.",
+                link: "https://www.nasa.gov/blogs/artemis/"
+            },
+            {
+                source: "Technical Status",
+                title: "Optical Communications Checkouts Complete",
+                text: "The O2O laser system has passed tests, promising 4K live video feeds from lunar distance during the flight.",
+                link: "https://www.nasa.gov/mission/artemis-ii/"
+            },
+            {
+                source: "Spaceflight Now",
+                title: "Secondary Payloads Installed",
+                text: "The Orion stage adapter now houses four CubeSats that will deploy after TLI to study space weather.",
+                link: "https://www.nasa.gov/mission/artemis-ii/"
+            },
+            {
+                source: "NASA Science",
+                title: "Radiation Shielding Verification",
+                text: "Final checks on the crew cabin shielding ensure the four astronauts are protected during their pass through the Van Allen belts.",
+                link: "https://www.nasa.gov/mission/artemis-ii/"
+            },
+            {
+                source: "Orion Updates",
+                title: "Life Support System High-Pressure Leak Test",
+                text: "The Environmental Control and Life Support System (ECLSS) passed its final high-pressure nitrogen test this morning.",
+                link: "https://www.nasa.gov/blogs/artemis/"
+            },
+            {
+                source: "Astronomy Magazine",
+                title: "How to Spot Artemis II in the Night Sky",
+                text: "Astronomers have released the predicted visibility coordinates for the spacecraft's high Earth orbit phase.",
+                link: "https://www.google.com/search?q=how+to+see+artemis+2"
+            },
+            {
+                source: "NASA Recovery",
+                title: "USS San Diego Prepares for Splashdown",
+                text: "Navy divers and NASA recovery teams have completed the final 'Underway Recovery Test 11' off the coast of California.",
+                link: "https://www.nasa.gov/mission/artemis-ii/"
+            },
+            {
+                source: "Deep Space Network",
+                title: "DSN Prepared for Artemis Data Flow",
+                text: "The Canberra and Madrid ground stations are ready to maintain constant contact with the Orion capsule throughout the lunar orbit.",
+                link: "https://www.nasa.gov/centers-and-facilities/jpl/"
+            }
+        ];
+
+        function parseLaunchDate(str) {
+            const parts = str.split(':');
+            const dateParts = parts[0].split('-');
+            return new Date(`${dateParts[0]}-${dateParts[1]}-${dateParts[2]}T${parts[1]}:${parts[2]}:${parts[3]}+01:00`);
+        }
+
+        const targetDate = parseLaunchDate(LAUNCH_DATE_STR);
+        document.getElementById('target-display').innerText = targetDate.toLocaleString('en-GB', { 
+            timeZone: 'CET',
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        }) + " (CET)";
+
+        function updateCountdown() {
+            const now = new Date();
+            const diff = targetDate - now;
+            if (diff <= 0) {
+                document.getElementById('countdown-container').innerHTML = "<h2 style='color:var(--gold);'>IGNITION & LIFTOFF!</h2>";
+                return;
+            }
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerText = String(d).padStart(2, '0');
+            document.getElementById('hours').innerText = String(h).padStart(2, '0');
+            document.getElementById('minutes').innerText = String(m).padStart(2, '0');
+            document.getElementById('seconds').innerText = String(s).padStart(2, '0');
+        }
+
+        // REFRESH LOGIC: PHOTO & NEWS
+        function applyRandomResources() {
+            // 1. Random Hero Image
+            const randomPhoto = photoPool[Math.floor(Math.random() * photoPool.length)];
+            const header = document.getElementById('hero-header');
+            header.style.background = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.85)), url('${randomPhoto.url}') center/cover no-repeat fixed`;
+            
+            // Update Credit
+            document.getElementById('footer-photo-credit').innerHTML = `
+                Hero Photo: <a href="${randomPhoto.link}" target="_blank">${randomPhoto.desc}</a> 
+                via <a href="https://images.nasa.gov/" target="_blank">NASA Images</a>
+            `;
+
+            // 2. Random News Selection (5 items)
+            const shuffledNews = [...newsPool].sort(() => 0.5 - Math.random());
+            const selectedNews = shuffledNews.slice(0, 5);
+            
+            const grid = document.getElementById('news-grid');
+            grid.innerHTML = ''; 
+            selectedNews.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.innerHTML = `
+                    <span class="source">${item.source}</span>
+                    <h3>${item.title}</h3>
+                    <p>${item.text}</p>
+                    <a href="${item.link}" target="_blank" class="btn-link">View Source</a>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // INITIALIZE CITY LIST
+        function populateCityList() {
+            const list = document.getElementById('tz-list');
+            list.innerHTML = '';
+            CITY_CONFIG.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city.name;
+                list.appendChild(option);
+            });
+        }
+
+        // Timezone UI Helpers
+        function openModal() { document.getElementById('modal-overlay').style.display = 'flex'; }
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+        
+        function updateLocalTZ() {
+            const cityName = document.getElementById('tz-input').value.trim();
+            if (!cityName) return;
+
+            // Find matching city in config
+            const cityMatch = CITY_CONFIG.find(c => c.name.toLowerCase() === cityName.toLowerCase());
+            
+            // If it's a direct city match from our config, use its timezone. 
+            // Otherwise, check if the input itself is a valid IANA timezone string.
+            const tzToUse = cityMatch ? cityMatch.tz : cityName;
+
+            try {
+                const options = { 
+                    timeZone: tzToUse, 
+                    year: 'numeric', month: 'short', day: 'numeric', 
+                    hour: '2-digit', minute: '2-digit', second: '2-digit' 
+                };
+                const localStr = targetDate.toLocaleString('en-US', options);
+                document.getElementById('local-result').innerText = `${localStr} (${tzToUse})`;
+                document.getElementById('local-time-note').style.display = 'block';
+                closeModal();
+            } catch (err) {
+                alert("Please select a city from the list or enter a valid IANA Timezone (e.g. America/Los_Angeles).");
+            }
+        }
+
+        // Init
+        window.onload = () => {
+            applyRandomResources();
+            populateCityList();
+            setInterval(updateCountdown, 1000);
+            updateCountdown();
+        };
+    </script>
+</body>
+</html>
