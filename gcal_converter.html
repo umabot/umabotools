@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCal Participant to CSV Converter</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font and base styling */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f7f7f7;
+        }
+        /* Style for the copy button when it shows success */
+        .copied-success {
+            background-color: #10b981; /* Emerald 500 */
+            color: white;
+            border-color: #059669; /* Emerald 600 */
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 min-h-screen">
+
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl p-6 md:p-10">
+
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-extrabold text-indigo-700 mb-2">GCal Participant List Cleaner</h1>
+            <p class="text-gray-600">Convert the cumbersome "Name &lt;email&gt;" list format into clean CSV data.</p>
+        </header>
+
+        <section class="space-y-6">
+            <!-- Input Area -->
+            <div class="bg-indigo-50 p-5 rounded-lg border border-indigo-200">
+                <label for="input-participants" class="block text-lg font-semibold text-indigo-800 mb-3">
+                    1. Paste Participants List Here
+                </label>
+                <textarea id="input-participants" rows="6" placeholder="Example: Albertina Piterbarg <albertina.piterbarg@gmail.com>, Eloisa Casagrande <eloisa.bighouse@gmail.com>..."
+                    class="w-full p-3 border-2 border-indigo-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out resize-none text-sm"></textarea>
+                <p class="text-sm text-indigo-600 mt-2">Separate entries with commas (,) or newlines/spaces.</p>
+            </div>
+
+            <!-- Conversion Button -->
+            <div class="flex justify-center">
+                <button id="convert-button" onclick="convertParticipants()"
+                    class="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white font-bold rounded-full shadow-lg hover:bg-indigo-700 transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 19M18 10V5h-.582m0 7.418a8.003 8.003 0 01-15.356 3m15.356-3m-15.356 3L11 19m4-4h.01"></path></svg>
+                    Convert to CSV
+                </button>
+            </div>
+
+            <!-- Output Area -->
+            <div class="bg-green-50 p-5 rounded-lg border border-green-200">
+                <label for="output-csv" class="block text-lg font-semibold text-green-800 mb-3">
+                    2. CSV Output (Participant, Email)
+                </label>
+                <textarea id="output-csv" rows="6" readonly placeholder="CSV output will appear here..."
+                    class="w-full p-3 border-2 border-green-300 rounded-lg bg-white text-gray-800 resize-none text-sm"></textarea>
+
+                <button id="copy-button" onclick="copyToClipboard('output-csv')"
+                    class="mt-3 w-full md:w-auto px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-300">
+                    Copy CSV to Clipboard
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer/Instructions -->
+        <footer class="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
+            <p>Paste the list, click convert, and copy the ready-to-use CSV for your meeting notes.</p>
+        </footer>
+    </div>
+
+    <script>
+        /**
+         * Converts the raw Gcal participant list string into a CSV format.
+         */
+        function convertParticipants() {
+            const inputElement = document.getElementById('input-participants');
+            const outputElement = document.getElementById('output-csv');
+            const rawText = inputElement.value.trim();
+
+            if (!rawText) {
+                outputElement.value = "Please paste the participant list in the input area above.";
+                return;
+            }
+
+            // Replace commas and newlines with a standard separator (e.g., a pipe)
+            // Then split by that standard separator, handling potential multiple spaces/newlines
+            const cleanedText = rawText.replace(/,\s*|\n+/g, '|').trim();
+            const entries = cleanedText.split('|').map(e => e.trim()).filter(e => e.length > 0);
+
+            let csvContent = "Participant,Email\n";
+            let validCount = 0;
+            const regex = /^(.*?)\s*<(.*?)>$/;
+
+            entries.forEach(entry => {
+                const match = entry.match(regex);
+
+                if (match && match.length === 3) {
+                    const name = match[1].trim().replace(/"/g, '""'); // Escape double quotes in name
+                    const email = match[2].trim().replace(/"/g, '""'); // Escape double quotes in email
+
+                    // CSV row format: "Name","Email"
+                    csvContent += `"${name}","${email}"\n`;
+                    validCount++;
+                } else {
+                    console.warn("Skipping invalid entry:", entry);
+                }
+            });
+
+            if (validCount > 0) {
+                outputElement.value = csvContent.trim();
+            } else {
+                outputElement.value = "No valid participants found. Please ensure the format is 'Name <email>', separated by commas or newlines.";
+            }
+        }
+
+        /**
+         * Copies the content of a specific textarea element to the clipboard.
+         * @param {string} elementId - The ID of the textarea to copy from.
+         */
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const button = document.getElementById('copy-button');
+            const originalText = button.textContent;
+
+            if (!element || !element.value) {
+                 button.textContent = 'Nothing to Copy!';
+                 button.classList.add('bg-red-500', 'hover:bg-red-600');
+                 setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-red-500', 'hover:bg-red-600');
+                 }, 2000);
+                return;
+            }
+
+            // Select the text field content
+            element.select();
+            element.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                // Use document.execCommand('copy') for better compatibility in iframe environments
+                document.execCommand('copy');
+
+                // Visual feedback
+                button.textContent = 'Copied!';
+                button.classList.add('copied-success');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied-success');
+                }, 2000);
+
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                button.textContent = 'Copy Failed!';
+                button.classList.add('bg-red-500', 'hover:bg-red-600');
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-red-500', 'hover:bg-red-600');
+                 }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>
