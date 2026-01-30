@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Before & After Studio</title>
+    <!-- Importing Lucide icons for UI elements -->
+    <script src="https://unpkg.com/lucide@0.563.0"></script>
+    <style>
+        :root {
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --handle-size: 40px;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.025em;
+        }
+
+        header p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        /* The Comparison Container */
+        .comparison-container {
+            position: relative;
+            width: 100%;
+            max-width: 850px;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -6px rgba(0, 0, 0, 0.04);
+            background-color: #cbd5e1;
+            user-select: none;
+        }
+
+        .image-after {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-before-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            border-right: 2px solid white;
+        }
+
+        .image-before {
+            display: block;
+            width: 850px;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .label {
+            position: absolute;
+            bottom: 1.25rem;
+            padding: 0.4rem 1rem;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-radius: 6px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .label-before { left: 1.25rem; }
+        .label-after { right: 1.25rem; }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            opacity: 0;
+            cursor: ew-resize;
+            z-index: 10;
+        }
+
+        .handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: var(--handle-size);
+            height: var(--handle-size);
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .handle-line {
+            position: absolute;
+            top: -1000%;
+            bottom: -1000%;
+            left: 50%;
+            width: 2px;
+            background-color: white;
+            transform: translateX(-50%);
+        }
+
+        .handle i {
+            color: var(--accent-color);
+            width: 22px;
+            height: 22px;
+        }
+
+        /* Controls Panel */
+        .controls {
+            margin-top: 2.5rem;
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .field label {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        input[type="text"] {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            width: 100%;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Custom Upload Button Styling */
+        .upload-area {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-input-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        .custom-file-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background-color: white;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .custom-file-button:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background-color: rgba(59, 130, 246, 0.03);
+        }
+
+        .custom-file-button i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .clear-btn {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #ef4444;
+            background: none;
+            border: 1px solid transparent;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover {
+            background: #fef2f2;
+            border-color: #fee2e2;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 3rem 0;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .privacy-note {
+            margin-top: 0.75rem;
+            font-size: 0.8125rem;
+            background: #f1f5f9;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Before & After Studio</h1>
+        <p>A simple, private way to visualize changes. Upload your images or use a URL to see the difference.</p>
+    </header>
+
+    <div class="comparison-container" id="container">
+        <!-- After Image (Background) -->
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1200" alt="After" class="image-after" id="img-after">
+        
+        <!-- Before Image (Clipped Overlay) -->
+        <div class="image-before-wrapper" id="wrapper">
+            <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1200&sat=-100" alt="Before" class="image-before" id="img-before">
+            <span class="label label-before">Before</span>
+        </div>
+
+        <span class="label label-after">After</span>
+
+        <!-- Handle Visual -->
+        <div class="handle" id="handle">
+            <div class="handle-line"></div>
+            <i data-lucide="chevrons-left-right"></i>
+        </div>
+
+        <!-- The actual interactive element -->
+        <input type="range" min="0" max="100" value="50" class="slider" id="slider" aria-label="Comparison slider">
+    </div>
+
+    <div class="controls">
+        <div class="input-group">
+            <!-- Before Field -->
+            <div class="field">
+                <label><i data-lucide="image"></i> Before Photo</label>
+                <input type="text" id="url-before" placeholder="Paste image URL here...">
+                <div class="upload-area">
+                    <input type="file" id="file-before" class="file-input-hidden" accept="image/*">
+                    <label for="file-before" class="custom-file-button">
+                        <i data-lucide="upload-cloud"></i>
+                        <span>Choose local file</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- After Field -->
+            <div class="field">
+                <label><i data-lucide="sparkles"></i> After Photo</label>
+                <input type="text" id="url-after" placeholder="Paste image URL here...">
+                <div class="upload-area">
+                    <input type="file" id="file-after" class="file-input-hidden" accept="image/*">
+                    <label for="file-after" class="custom-file-button">
+                        <i data-lucide="upload-cloud"></i>
+                        <span>Choose local file</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="btn-container">
+            <button class="clear-btn" id="reset-defaults">
+                <i data-lucide="rotate-ccw" style="width: 14px;"></i>
+                Reset to default demo
+            </button>
+        </div>
+    </div>
+
+    <footer>
+        <div>Images stored in your browser's LocalStorage • Pure HTML/JS/CSS</div>
+        <div class="privacy-note">
+            <strong>Privacy First:</strong> No cookies and no cloud uploads. All images stay strictly on your computer.
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // UI Elements
+        const slider = document.getElementById('slider');
+        const wrapper = document.getElementById('wrapper');
+        const handle = document.getElementById('handle');
+        const imgBefore = document.getElementById('img-before');
+        const mainImgAfter = document.getElementById('img-after');
+        const container = document.getElementById('container');
+
+        const inputUrlBefore = document.getElementById('url-before');
+        const inputUrlAfter = document.getElementById('url-after');
+        const inputFileBefore = document.getElementById('file-before');
+        const inputFileAfter = document.getElementById('file-after');
+        const btnReset = document.getElementById('reset-defaults');
+
+        const DEFAULT_BEFORE = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1200&sat=-100";
+        const DEFAULT_AFTER = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1200";
+
+        // Update the curtain position
+        function updateCurtain(value) {
+            wrapper.style.width = `${value}%`;
+            handle.style.left = `${value}%`;
+        }
+
+        // Keep "Before" image full width within clipped container
+        function syncImageWidth() {
+            const containerWidth = container.offsetWidth;
+            imgBefore.style.width = `${containerWidth}px`;
+        }
+
+        // Save to LocalStorage
+        function saveToStorage(key, value) {
+            try {
+                localStorage.setItem(key, value);
+            } catch (e) {
+                console.warn("Local storage is full. Large images might not be saved.");
+            }
+        }
+
+        // Update image source
+        function updateImage(type, source, isFile = false) {
+            const imgElement = (type === 'before') ? imgBefore : mainImgAfter;
+            const inputElement = (type === 'before') ? inputUrlBefore : inputUrlAfter;
+            
+            imgElement.src = source;
+            if (!isFile) inputElement.value = source;
+            
+            saveToStorage(`reveal_app_${type}`, source);
+        }
+
+        // Handle File Upload
+        function handleFileUpload(e, type) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Update button label to show selected filename (optional polish)
+            const label = e.target.nextElementSibling.querySelector('span');
+            label.textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64String = event.target.result;
+                updateImage(type, base64String, true);
+                const urlInput = (type === 'before') ? inputUrlBefore : inputUrlAfter;
+                urlInput.value = ""; 
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Event Listeners
+        slider.addEventListener('input', (e) => updateCurtain(e.target.value));
+
+        inputUrlBefore.addEventListener('input', () => updateImage('before', inputUrlBefore.value));
+        inputUrlAfter.addEventListener('input', () => updateImage('after', inputUrlAfter.value));
+
+        inputFileBefore.addEventListener('change', (e) => handleFileUpload(e, 'before'));
+        inputFileAfter.addEventListener('change', (e) => handleFileUpload(e, 'after'));
+
+        btnReset.addEventListener('click', () => {
+            localStorage.removeItem('reveal_app_before');
+            localStorage.removeItem('reveal_app_after');
+            updateImage('before', DEFAULT_BEFORE);
+            updateImage('after', DEFAULT_AFTER);
+            document.querySelectorAll('.custom-file-button span').forEach(s => s.textContent = "Choose local file");
+        });
+
+        window.addEventListener('resize', syncImageWidth);
+
+        // Initial Load
+        function init() {
+            const storedBefore = localStorage.getItem('reveal_app_before');
+            const storedAfter = localStorage.getItem('reveal_app_after');
+
+            updateImage('before', storedBefore || DEFAULT_BEFORE);
+            updateImage('after', storedAfter || DEFAULT_AFTER);
+            
+            syncImageWidth();
+            updateCurtain(50);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
