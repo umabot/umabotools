@@ -27,21 +27,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install markdown2
+      
+      - name: Convert Markdown to HTML
+        run: python convert_docs.py
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      
-      - name: Prepare deployment files
-        run: |
-          mkdir -p _site
-          cp *.html _site/ 2>/dev/null || true
-          cp README.md _site/ 2>/dev/null || true
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload only the prepared site files
-          path: '_site'
+          path: 'dist'
           
   # Deployment job
   deploy:
