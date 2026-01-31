@@ -131,12 +131,23 @@ Use frontmatter to control conversion behavior:
 ---
 skip_conversion: true
 title: Custom Page Title
+draft: true
+
+---
+```
+
+**Supported fields:**
+
+- `skip_conversion`: Skip HTML generation (for internal docs)
+- `title`: Override page title
+- `draft`: Mark as work-in-progress (skips conversion)
 
 ### Reusable Snippets
 
 Snippet files in `./assets/snippets/` are automatically injected into documentation:
 
 **doc-header.md:**
+
 ```markdown
 [← Back to Home](../../index.html)
 
@@ -144,37 +155,27 @@ Snippet files in `./assets/snippets/` are automatically injected into documentat
 ```
 
 **doc-footer.md:**
+
 ```markdown
-
----
-
-## Licensemd` tools table
-6. Run `python3 convert_docs.py` to generate HTML
-7
+## License
 This project is licensed under the MIT License.
 
 **InnovUmabot** | [https://innovumabot.com](https://innovumabot.com)
 
 *This tool was vibe-coded with AI with strict human supervision.*
-```md`
-5. Run `python3 convert_docs.py
+```
+
+6. Run `python3 convert_docs.py` to generate HTML
 
 These snippets are automatically added to all documentation pages during conversion.
 
 ### Branding Assets
 
 Place company logo in `./assets/images/`:
+
 - `logo.svg` (preferred) or `logo.png`
 - Logo is displayed at the top of the landing page
 - Keep logo files under 200KB for fast loading
-draft: true
----
-```
-
-**Supported fields:**
-- `skip_conversion`: Skip HTML generation (for internal docs)
-- `title`: Override page title
-- `draft`: Mark as work-in-progress (skips conversion)
 
 ## Development Workflow
 
@@ -204,12 +205,14 @@ draft: true
 
 ## CI/CD Pipeline
 
-- **GitHub A`index.md` to `index.html`
+- GitHub Actions convert `index.md` to `index.html`
   - Convert markdown docs to HTML with header/footer snippets
   - Deploy all HTML files to GitHub Pages
   - Copy `assets/` directory (images, snippets)
   - Maintain `./dist/` folder structure
-- **Validation**: Ensures `index.html` exists before deployment
+
+**Validation**: Ensures `index.html` exists before deployment
+
   - Convert markdown docs to HTML
   - Deploy all HTML files to GitHub Pages
   - Maintain `./dist/` folder structure
@@ -217,6 +220,7 @@ draft: true
 ## Testing Requirements
 
 ### For Web Apps
+
 - [ ] Opens directly in browser (no server needed)
 - [ ] No console errors
 - [ ] Works offline (except for CDN/API calls)
@@ -224,13 +228,15 @@ draft: true
 - [ ] No data sent to external services (unless documented)
 
 ### For Python Tools
+
 - [ ] Runs with `uv run <script>`
 - [ ] Clear error messages
 - [ ] Help/usage documentation
-
 - [ ] Header and footer snippets are included
 - [ ] License and branding information present
+
 ### For Documentation
+
 - [ ] Converts cleanly to HTML
 - [ ] Links work in both markdown and HTML
 - [ ] Tables render correctly
@@ -275,9 +281,8 @@ const data = JSON.parse(localStorage.getItem('key') || '[]');
 ```
 
 ### API Proxy Pattern
-See `photo_tagger.html` and `secure_sec
-- Logo file: `logo.svg` or `logo.png` (in `assets/images/`)
-- Snippets: `kebab-case.md` (in `assets/snippets/`)rets_gs.html` for the complete pattern of using Google Apps Script as a secure API proxy.
+
+See `photo_tagger.html` and `secure_sec`
 
 ## File Naming Conventions
 
