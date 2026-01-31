@@ -44,6 +44,57 @@ TEMPLATE = """
             text-decoration: underline;
         }}
 
+        /* Code blocks with dark background and light text */
+        .markdown-body code {{
+            background-color: #1e1e1e !important;
+            color: #d4d4d4 !important;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }}
+        
+        .markdown-body pre {{
+            background-color: #1e1e1e !important;
+            padding: 16px;
+            border-radius: 6px;
+            overflow: auto;
+        }}
+        
+        .markdown-body pre code {{
+            background-color: transparent !important;
+            color: #d4d4d4 !important;
+            padding: 0;
+        }}
+        
+        /* Tables with white background */
+        .markdown-body table {{
+            background-color: #ffffff !important;
+            border-collapse: collapse;
+        }}
+        
+        .markdown-body table tr {{
+            background-color: #ffffff !important;
+            border-top: 1px solid #e0e0e0 !important;
+        }}
+        
+        .markdown-body table tr:nth-child(2n) {{
+            background-color: #f5f5f5 !important;
+        }}
+        
+        .markdown-body table th {{
+            background-color: #f5f5f5 !important;
+            color: #333333 !important;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+        }}
+        
+        .markdown-body table td {{
+            color: #333333 !important;
+            padding: 15px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }}
+
         @media (max-width: 768px) {{
             body {{
                 padding: 10px;
@@ -63,7 +114,7 @@ TEMPLATE = """
             }}
         }}
         
-        /* Override dark mode with light styles */
+        /* Override dark mode with light styles for body and tables, but keep code dark */
         @media (prefers-color-scheme: dark) {{
             body {{
                 background-color: #ffffff !important;
@@ -72,6 +123,17 @@ TEMPLATE = """
             .markdown-body {{
                 background-color: #ffffff !important;
                 color-scheme: light !important;
+            }}
+            .markdown-body code {{
+                background-color: #1e1e1e !important;
+                color: #d4d4d4 !important;
+            }}
+            .markdown-body pre {{
+                background-color: #1e1e1e !important;
+            }}
+            .markdown-body table th,
+            .markdown-body table td {{
+                color: #333333 !important;
             }}
         }}
     </style>
