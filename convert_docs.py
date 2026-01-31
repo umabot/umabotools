@@ -12,29 +12,66 @@ TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
+    <!-- Use github-markdown-css for syntax highlighting and table formatting, but override container styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
     <style>
+        /* Base styles matching index.html */
         body {{
+            background-color: #ffffff !important;
+            color: #333333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }}
+        
+        /* Container matching index.html dimensions and flat style */
+        .markdown-body {{
             box-sizing: border-box;
             min-width: 200px;
-            max-width: 980px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 45px;
-            background-color: #f6f8fa;
+            padding: 20px;
+            background-color: #ffffff !important;
         }}
-        .markdown-body {{
-            background-color: white;
-            padding: 40px;
-            border: 1px solid #d0d7de;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        
+        /* Override GitHub link colors to match index.html */
+        .markdown-body a {{
+            color: #0066cc;
+            text-decoration: none;
         }}
-        @media (max-width: 767px) {{
-            .markdown-body {{
-                padding: 15px;
-            }}
+        .markdown-body a:hover {{
+            text-decoration: underline;
+        }}
+
+        @media (max-width: 768px) {{
             body {{
-                padding: 15px;
+                padding: 10px;
+            }}
+            .markdown-body {{
+                padding: 10px;
+            }}
+        }}
+        
+        /* Force white background in light mode */
+        @media (prefers-color-scheme: light) {{
+            body {{
+                background-color: #ffffff !important;
+            }}
+            .markdown-body {{
+                background-color: #ffffff !important;
+            }}
+        }}
+        
+        /* Override dark mode with light styles */
+        @media (prefers-color-scheme: dark) {{
+            body {{
+                background-color: #ffffff !important;
+                color: #333333 !important;
+            }}
+            .markdown-body {{
+                background-color: #ffffff !important;
+                color-scheme: light !important;
             }}
         }}
     </style>
