@@ -41,6 +41,13 @@ jobs:
       - name: Convert Markdown to HTML
         run: python convert_docs.py
         
+      - name: List dist contents
+        run: |
+          echo "Contents of dist directory:"
+          ls -R dist/
+          echo "Root directory contents:"
+          ls -la
+        
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
