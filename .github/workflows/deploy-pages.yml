@@ -47,17 +47,33 @@ jobs:
           ls -R dist/
           echo "Root directory contents:"
           ls -la
+
+      - name: Prepare Deployment
+        run: |
+          # Create a clean folder for deployment
+          mkdir _site
           
-      - name: Disable Jekyll
-        run: touch .nojekyll
-        
+          # Copy only the files we want to publish (ignoring source code, gitignore, etc)
+          cp *.html _site/
+          cp -r dist _site/
+          
+          # Copy docs folder if needed (some pages might reference assets in docs)
+          if [ -d "docs" ]; then cp -r docs _site/; fi
+          
+          # Create .nojekyll inside the deployment folder to prevent 404s
+          touch _site/.nojekyll
+          
+          # Debug: Show what we are about to upload
+          echo "Final deployment folder structure:"
+          ls -R _site/
+          
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
           
   # Deployment job
   deploy:
