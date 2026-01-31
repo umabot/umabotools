@@ -1,4 +1,4 @@
-<!-- Umabot Tools Landing Page - A collection of single-page web applications -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,14 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Umabot Tools - Landing Page</title>
     <style>
-        /* Reset default browser styles */
+        /* Reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         
-        /* Base body styles */
+        /* Base styles */
         body {
             background-color: #ffffff;
             color: #333333;
@@ -22,14 +22,32 @@
             line-height: 1.6;
         }
         
-        /* Main container for content */
+        /* Header with logo */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header img {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            height: 38px;
+            width: auto;
+            margin-bottom: 20px;
+        }
+        
+        /* Main container */
         .container {
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
         }
         
-        /* Main heading styles */
+        /* Headings */
         h1 {
             color: #000000;
             font-size: 32px;
@@ -37,239 +55,193 @@
             font-weight: 600;
         }
         
-        /* Introduction text styles */
-        .description {
-            margin-bottom: 30px;
-            color: #666666;
-            font-size: 16px;
-        }
-        
-        /* Section divider */
-        hr {
-            border: none;
-            border-top: 1px solid #e0e0e0;
-            margin: 30px 0;
-        }
-        
-        /* Section heading styles */
         h2 {
             color: #000000;
             font-size: 24px;
+            margin-top: 40px;
             margin-bottom: 20px;
             font-weight: 600;
         }
         
-        /* Tools table styles */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th {
-            background-color: #f5f5f5;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid #e0e0e0;
-        }
-        td {
-            padding: 15px 12px;
-            border-bottom: 1px solid #e0e0e0;
-            vertical-align: top;
-        }
-        tr:last-child td {
-            border-bottom: none;
+        /* Description text */
+        .description {
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.8;
         }
         
-        /* Link styles */
+        /* Horizontal rule */
+        hr {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 40px 0;
+        }
+        
+        /* Links */
         a {
             color: #0066cc;
             text-decoration: none;
         }
+        
         a:hover {
             text-decoration: underline;
         }
         
-        /* Application name styling */
-        .app-name {
-            font-weight: 500;
-            font-size: 16px;
-        }
-        .see-more {
-            font-size: 14px;
-            margin-left: 10px;
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
         }
         
-        /* Tablet and mobile responsiveness */
+        thead {
+            background-color: #f5f5f5;
+        }
+        
+        th {
+            text-align: left;
+            padding: 15px 12px;
+            font-weight: 600;
+            color: #333333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 14px;
+            color: #666666;
+        }
+        
+        .footer p {
+            margin: 10px 0;
+        }
+        
+        .footer em {
+            color: #888888;
+            font-style: normal;
+        }
+        
+        /* Responsive */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
             }
+            
             .container {
                 padding: 10px;
             }
+            
             h1 {
-                font-size: 24px;
+                font-size: 26px;
             }
+            
             h2 {
                 font-size: 20px;
             }
+            
             table {
                 font-size: 14px;
             }
+            
             th, td {
                 padding: 10px 8px;
             }
         }
         
-        /* Stack table vertically on small screens */
         @media (max-width: 480px) {
-            table, thead, tbody, th, td, tr {
-                display: block;
+            h1 {
+                font-size: 22px;
             }
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
+            
+            h2 {
+                font-size: 18px;
             }
-            tr {
-                margin-bottom: 20px;
-                border: 1px solid #e0e0e0;
-                border-radius: 4px;
-                padding: 10px;
+            
+            table {
+                font-size: 13px;
             }
-            td {
-                border: none;
-                position: relative;
-                padding-left: 0;
+            
+            th, td {
+                padding: 8px 6px;
             }
-            td:before {
-                font-weight: 600;
-                display: block;
-                margin-bottom: 5px;
-            }
-            td:nth-of-type(1):before { content: "App: "; }
-            td:nth-of-type(2):before { content: "Description: "; }
         }
     </style>
 </head>
 <body>
-    <!-- Main content container -->
     <div class="container">
-        <!-- Page title -->
-        <h1>Umabot Tools - Landing Page</h1>
-        
-        <!-- Welcome message and project description -->
-        <div class="description">
-            <p>Welcome to Umabot Tools, an experimental collection of single-page web applications. This project serves as a playground for exploring web development concepts, building lightweight tools, and testing interactive features—all within the simplicity of standalone HTML pages. Each app is self-contained and can run directly in your browser without any backend infrastructure</p>
-        </div>
-        
-        <!-- Visual separator -->
-        <hr>
-        
-        <!-- Tools section header -->
-        <h2>Available Tools</h2>
-        
-        <!-- Tools listing table -->
-        <table>
-            <thead>
-                <tr>
-                    <th>Application</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Space Invaders game -->
-                <tr>
-                    <td>
-                        <span class="app-name"><a href="spaceinvaders.html">Space Invaders</a></span>
-                    </td>
-                    <td>
-                        A classic arcade game recreation built with HTML5 Canvas. Defend Earth from waves of alien invaders!
-                        <a href="dist/spaceinvaders/README.html" class="see-more">See more</a>
-                    </td>
-                </tr>
-                
-                <!-- Photo tagging tool -->
-                <tr>
-                    <td>
-                        <span class="app-name"><a href="photo_tagger.html">Photo Title and Tagger</a></span>
-                    </td>
-                    <td>
-                        If in your photo album you have photos with the title generated by the camera like "IMG_20230615_123456.jpg", this app will help you to add meaningful titles and tags to your photos for better organization.
-                        <a href="dist/photo_tagger/README.html" class="see-more">See more</a>
-                    </td>
-                </tr>
-                
-                <!-- Google Sheets integration tool -->
-                <tr>
-                    <td>
-                        <span class="app-name"><a href="https://github.com/umabot/umabotools/blob/main/tools/SUGGEST_TITLE/SUGGEST_TITLE.js">SUGGEST_TITLE function for Google Script</a></span>
-                    </td>
-                    <td>
-                        Similar to photo_tagger, but a utility for your Google Spreadsheet that contains your photo album list. It suggests titles and you must pass the URL to the photo and you may pass a language en,fr, or es to get the title in that language. It uses a method to store your Google AI Studio secret safely, explained all the methods in this <a href="secure_secrets_gs.html" >page.</a>
-                        <a href="dist/suggest_title/README.html" class="see-more">See more</a>
-                    </td>
-                </tr>
-                
-                <!-- QR Code Generator tool -->
-                <tr>
-                    <td>
-                        <span class="app-name"><a href="qr_generator.html">QR Code Generator</a></span>
-                    </td>
-                    <td>
-                        Single page to create QR codes for URLs, text, and contacts.
-                        <a href="dist/qr_generator/README.html" class="see-more">See more</a>
-                    </td>
-                </tr>
+        <p><img src="assets/images/logo.png" class="logo" alt="InnovUmabot Logo" /></p>
 
-                <!-- Artemis II Launch counter -->
-                <tr>
-                    <td>
-                        <span class="app-name"><a href="artemis_launch_counter.html">Artemis II Launch Counter</a></span>
-                    </td>
-                    <td>
-                        Countdown timer and information display for the Artemis II mission launch.
-                        <a href="dist/artemis_launch_counter/README.html" class="see-more">See more</a>
-                    </td>
-                </tr>
+<h1 id="umabot-tools-landing-page">Umabot Tools - Landing Page</h1>
 
-                <!-- Gcal to CSV Converter -->
-                <tr>
-                    <td>
-                        <span class="app-name"><a href="gcal_converter.html">GCal Participant List Cleaner</a></span>
-                    </td>
-                    <td>
-                        Creating a clean csv list of participants copying from Google Calendar participant lists.
-                        <a href="dist/gcal_converter/README.html" class="see-more">See more</a>
-                    </td>
-                </tr>
+<p>Welcome to Umabot Tools, an experimental collection of single-page web applications. This project serves as a playground for exploring web development concepts, building lightweight tools, and testing interactive features—all within the simplicity of standalone HTML pages. Each app is self-contained and can run directly in your browser without any backend infrastructure.</p>
 
-                <!-- Before & After Image Comparison -->
-                <tr>
-                    <td>
-                        <span class="app-name"><a href="image_comparison.html">Before & After Studio</a></span>
-                    </td>
-                    <td>
-                        Interactive slider to compare two images side-by-side. Ideal for viewing how a picture changed after modifications using photo editing tools or AI/LLMs.
-                        <a href="dist/image_comparison/README.html" class="see-more">See more</a>
-                    </td>
-                </tr>
+<hr />
 
-                <!-- Template for adding new tools - Copy and uncomment the section below -->
-                <!--
-                <tr>
-                    <td>
-                        <span class="app-name"><a href="your-tool.html">Tool Name</a></span>
-                    </td>
-                    <td>
-                        Brief description of what your tool does and its main features.
-                        <a href="docs/your-tool/README.md" class="see-more">See more</a>
-                    </td>
-                </tr>
-                -->
-            </tbody>
-        </table>
+<h2 id="available-tools">Available Tools</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Application</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><a href="spaceinvaders.html">Space Invaders</a></td>
+  <td>A classic arcade game recreation built with HTML5 Canvas. Defend Earth from waves of alien invaders! <a href="dist/spaceinvaders/README.html">See more</a></td>
+</tr>
+<tr>
+  <td><a href="photo_tagger.html">Photo Title and Tagger</a></td>
+  <td>If in your photo album you have photos with the title generated by the camera like "IMG<em>20230615</em>123456.jpg", this app will help you to add meaningful titles and tags to your photos for better organization. <a href="dist/photo_tagger/README.html">See more</a></td>
+</tr>
+<tr>
+  <td><a href="https://github.com/umabot/umabotools/blob/main/tools/SUGGEST_TITLE/SUGGEST_TITLE.js">SUGGEST_TITLE function for Google Script</a></td>
+  <td>Similar to photo_tagger, but a utility for your Google Spreadsheet that contains your photo album list. It suggests titles and you must pass the URL to the photo and you may pass a language en,fr, or es to get the title in that language. It uses a method to store your Google AI Studio secret safely, explained all the methods in this <a href="secure_secrets_gs.html">page.</a> <a href="dist/suggest_title/README.html">See more</a></td>
+</tr>
+<tr>
+  <td><a href="qr_generator.html">QR Code Generator</a></td>
+  <td>Single page to create QR codes for URLs, text, and contacts. <a href="dist/qr_generator/README.html">See more</a></td>
+</tr>
+<tr>
+  <td><a href="artemis_launch_counter.html">Artemis II Launch Counter</a></td>
+  <td>Countdown timer and information display for the Artemis II mission launch. <a href="dist/artemis_launch_counter/README.html">See more</a></td>
+</tr>
+<tr>
+  <td><a href="gcal_converter.html">GCal Participant List Cleaner</a></td>
+  <td>Creating a clean csv list of participants copying from Google Calendar participant lists. <a href="dist/gcal_converter/README.html">See more</a></td>
+</tr>
+<tr>
+  <td><a href="image_comparison.html">Before &amp; After Studio</a></td>
+  <td>Interactive slider to compare two images side-by-side. Ideal for viewing how a picture changed after modifications using photo editing tools or AI/LLMs. <a href="dist/image_comparison/README.html">See more</a></td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="license">License</h2>
+
+<p>This project is licensed under the MIT License.</p>
+
+<p><strong>InnovUmabot</strong> | <a href="https://innovumabot.com">https://innovumabot.com</a></p>
+
+<p><em>This tool was vibe-coded with AI with strict human supervision.</em></p>
+
     </div>
 </body>
 </html>

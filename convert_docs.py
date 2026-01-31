@@ -1,21 +1,217 @@
 import os
 import markdown2
 from pathlib import Path
+import re
 
 # Configuration
 DOCS_DIR = './docs'
-OUTPUT_DIR = './dist' # Where the HTML files will go
-TEMPLATE = """
+OUTPUT_DIR = './dist'
+SNIPPETS_DIR = './assets/snippets'
+INDEX_MD = './index.md'
+INDEX_HTML = './index.html'
+
+# Landing page template (for index.html)
+LANDING_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
-    <!-- Use github-markdown-css for syntax highlighting and table formatting, but override container styles -->
+    <style>
+        /* Reset */
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        
+        /* Base styles */
+        body {{
+            background-color: #ffffff;
+            color: #333333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }}
+        
+        /* Header with logo */
+        .header {{
+            text-align: center;
+            margin-bottom: 40px;
+        }}
+        
+        .header img {{
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 20px;
+        }}
+        
+        .logo {{
+            height: 38px;
+            width: auto;
+            margin-bottom: 20px;
+        }}
+        
+        /* Main container */
+        .container {{
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }}
+        
+        /* Headings */
+        h1 {{
+            color: #000000;
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }}
+        
+        h2 {{
+            color: #000000;
+            font-size: 24px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }}
+        
+        /* Description text */
+        .description {{
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }}
+        
+        /* Horizontal rule */
+        hr {{
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 40px 0;
+        }}
+        
+        /* Links */
+        a {{
+            color: #0066cc;
+            text-decoration: none;
+        }}
+        
+        a:hover {{
+            text-decoration: underline;
+        }}
+        
+        /* Table styles */
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }}
+        
+        thead {{
+            background-color: #f5f5f5;
+        }}
+        
+        th {{
+            text-align: left;
+            padding: 15px 12px;
+            font-weight: 600;
+            color: #333333;
+            border-bottom: 2px solid #e0e0e0;
+        }}
+        
+        td {{
+            padding: 15px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }}
+        
+        tr:hover {{
+            background-color: #f9f9f9;
+        }}
+        
+        /* Footer */
+        .footer {{
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 14px;
+            color: #666666;
+        }}
+        
+        .footer p {{
+            margin: 10px 0;
+        }}
+        
+        .footer em {{
+            color: #888888;
+            font-style: normal;
+        }}
+        
+        /* Responsive */
+        @media (max-width: 768px) {{
+            body {{
+                padding: 10px;
+            }}
+            
+            .container {{
+                padding: 10px;
+            }}
+            
+            h1 {{
+                font-size: 26px;
+            }}
+            
+            h2 {{
+                font-size: 20px;
+            }}
+            
+            table {{
+                font-size: 14px;
+            }}
+            
+            th, td {{
+                padding: 10px 8px;
+            }}
+        }}
+        
+        @media (max-width: 480px) {{
+            h1 {{
+                font-size: 22px;
+            }}
+            
+            h2 {{
+                font-size: 18px;
+            }}
+            
+            table {{
+                font-size: 13px;
+            }}
+            
+            th, td {{
+                padding: 8px 6px;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        {content}
+    </div>
+</body>
+</html>
+"""
+
+# Documentation template (for docs)
+DOCS_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
     <style>
-        /* Base styles matching index.html */
         body {{
             background-color: #ffffff !important;
             color: #333333;
@@ -25,7 +221,6 @@ TEMPLATE = """
             line-height: 1.6;
         }}
         
-        /* Container matching index.html dimensions and flat style */
         .markdown-body {{
             box-sizing: border-box;
             min-width: 200px;
@@ -35,7 +230,6 @@ TEMPLATE = """
             background-color: #ffffff !important;
         }}
         
-        /* Override GitHub link colors to match index.html */
         .markdown-body a {{
             color: #0066cc;
             text-decoration: none;
@@ -44,7 +238,6 @@ TEMPLATE = """
             text-decoration: underline;
         }}
 
-        /* Code blocks with dark background and light text */
         .markdown-body code {{
             background-color: #1e1e1e !important;
             color: #d4d4d4 !important;
@@ -65,7 +258,6 @@ TEMPLATE = """
             padding: 0;
         }}
         
-        /* Tables with white background */
         .markdown-body table {{
             background-color: #ffffff !important;
             border-collapse: collapse;
@@ -104,7 +296,6 @@ TEMPLATE = """
             }}
         }}
         
-        /* Force white background in light mode */
         @media (prefers-color-scheme: light) {{
             body {{
                 background-color: #ffffff !important;
@@ -114,7 +305,6 @@ TEMPLATE = """
             }}
         }}
         
-        /* Override dark mode with light styles for body and tables, but keep code dark */
         @media (prefers-color-scheme: dark) {{
             body {{
                 background-color: #ffffff !important;
@@ -144,37 +334,148 @@ TEMPLATE = """
 </html>
 """
 
-def convert_markdown():
-    # Ensure output directory exists
+def load_snippet(snippet_name):
+    """Load a markdown snippet from the snippets directory."""
+    snippet_path = Path(SNIPPETS_DIR) / f"{snippet_name}.md"
+    if snippet_path.exists():
+        with open(snippet_path, 'r', encoding='utf-8') as f:
+            return f.read()
+    return ""
+
+def parse_frontmatter(content):
+    """Extract YAML frontmatter from markdown content."""
+    frontmatter_pattern = r'^---\s*\n(.*?)\n---\s*\n'
+    match = re.match(frontmatter_pattern, content, re.DOTALL)
+    
+    if match:
+        frontmatter_text = match.group(1)
+        body = content[match.end():]
+        
+        metadata = {}
+        for line in frontmatter_text.strip().split('\n'):
+            if ':' in line:
+                key, value = line.split(':', 1)
+                metadata[key.strip()] = value.strip().lower() == 'true' if value.strip().lower() in ['true', 'false'] else value.strip()
+        
+        return metadata, body
+    
+    return {}, content
+
+def convert_index():
+    """Convert index.md to index.html using landing page template."""
+    if not Path(INDEX_MD).exists():
+        print("⊘ index.md not found, skipping index generation")
+        return False
+    
+    print("Converting index.md → index.html...")
+    
+    with open(INDEX_MD, 'r', encoding='utf-8') as f:
+        md_content = f.read()
+    
+    # Parse frontmatter
+    metadata, body = parse_frontmatter(md_content)
+    
+    # Convert to HTML
+    html_content = markdown2.markdown(body, extras=["fenced-code-blocks", "tables", "header-ids"])
+    
+    # Add class="logo" to logo image for styling
+    html_content = re.sub(
+        r'<img src="assets/images/logo\.png"([^>]*)>',
+        r'<img src="assets/images/logo.png" class="logo"\1>',
+        html_content
+    )
+    
+    # Apply landing page template
+    final_html = LANDING_TEMPLATE.format(
+        title=metadata.get('title', 'Umabot Tools - Landing Page'),
+        content=html_content
+    )
+    
+    # Write to root
+    with open(INDEX_HTML, 'w', encoding='utf-8') as f:
+        f.write(final_html)
+    
+    print(f"✓ Created {INDEX_HTML}")
+    return True
+
+def convert_docs():
+    """Convert documentation markdown files with snippets."""
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
+    # Load reusable snippets
+    header_snippet = load_snippet('doc-header')
+    footer_snippet = load_snippet('doc-footer')
+
+    skipped_files = []
+    converted_files = []
+
     for path in Path(DOCS_DIR).rglob('*.md'):
-        print(f"Converting {path}...")
-        
         with open(path, 'r', encoding='utf-8') as f:
             md_content = f.read()
+        
+        # Parse frontmatter
+        metadata, body = parse_frontmatter(md_content)
+        
+        # Check if file should be skipped
+        if metadata.get('skip_conversion') or metadata.get('draft'):
+            print(f"⊘ Skipping {path} (skip_conversion={metadata.get('skip_conversion')}, draft={metadata.get('draft')})")
+            skipped_files.append(path)
+            continue
+        
+        print(f"Converting {path}...")
+        
+        # Inject header and footer snippets
+        full_markdown = f"{header_snippet}\n\n{body}\n\n{footer_snippet}"
             
-        # Convert MD to HTML (supporting tables, code blocks, etc.)
-        html_content = markdown2.markdown(md_content, extras=["fenced-code-blocks", "tables", "header-ids"])
+        # Convert to HTML
+        html_content = markdown2.markdown(full_markdown, extras=["fenced-code-blocks", "tables", "header-ids"])
         
         # Prepare file paths
         relative_path = path.relative_to(DOCS_DIR)
         output_file = Path(OUTPUT_DIR) / relative_path.with_suffix('.html')
         
-        # Ensure subdirectories exist in dist
+        # Ensure subdirectories exist
         output_file.parent.mkdir(parents=True, exist_ok=True)
         
-        # Wrap in template
-        final_html = TEMPLATE.format(
-            title=path.stem.replace('_', ' ').title(),
+        # Apply documentation template
+        final_html = DOCS_TEMPLATE.format(
+            title=metadata.get('title', path.stem.replace('_', ' ').title()),
             content=html_content
         )
         
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(final_html)
+        
+        converted_files.append(path)
 
-    print(f"Done! All documentation converted to {OUTPUT_DIR}")
+    print(f"\n✓ Converted {len(converted_files)} documentation file(s)")
+    if skipped_files:
+        print(f"⊘ Skipped {len(skipped_files)} file(s)")
+    
+    return len(converted_files)
+
+def main():
+    """Main conversion workflow."""
+    print("=" * 60)
+    print("Umabotools Documentation Converter")
+    print("=" * 60)
+    
+    # Convert index.md to index.html
+    index_converted = convert_index()
+    
+    print()
+    
+    # Convert documentation files
+    docs_converted = convert_docs()
+    
+    print()
+    print("=" * 60)
+    print(f"✓ Conversion complete!")
+    if index_converted:
+        print(f"  - index.html generated")
+    print(f"  - {docs_converted} documentation page(s) in {OUTPUT_DIR}")
+    print("=" * 60)
 
 if __name__ == "__main__":
-    convert_markdown()
+    main()

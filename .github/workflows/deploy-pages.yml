@@ -41,6 +41,14 @@ jobs:
       - name: Convert Markdown to HTML
         run: python convert_docs.py
         
+      - name: Verify index.html generation
+        run: |
+          if [ ! -f "index.html" ]; then
+            echo "ERROR: index.html was not generated!"
+            exit 1
+          fi
+          echo "✓ index.html generated successfully"
+        
       - name: List dist contents
         run: |
           echo "Contents of dist directory:"
@@ -53,9 +61,14 @@ jobs:
           # Create a clean folder for deployment
           mkdir _site
           
-          # Copy only the files we want to publish (ignoring source code, gitignore, etc)
+          # Copy HTML files (including generated index.html)
           cp *.html _site/
+          
+          # Copy converted documentation
           cp -r dist _site/
+          
+          # Copy assets (images, snippets)
+          if [ -d "assets" ]; then cp -r assets _site/; fi
           
           # Copy docs folder if needed (some pages might reference assets in docs)
           if [ -d "docs" ]; then cp -r docs _site/; fi
