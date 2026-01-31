@@ -47,6 +47,9 @@ jobs:
           ls -R dist/
           echo "Root directory contents:"
           ls -la
+          
+      - name: Disable Jekyll
+        run: touch .nojekyll
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
