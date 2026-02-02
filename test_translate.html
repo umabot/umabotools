@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Translate Integration Test</title>
+    <style>
+        /* Reset & Base Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; }
+        body { line-height: 1.5; }
+        
+        /* Utility Classes */
+        .container { max-width: 42rem; margin: 0 auto; padding: 2rem; }
+        .header { margin-bottom: 2rem; }
+        .title { font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem; }
+        .subtitle { color: #4b5563; }
+        
+        .card { background: white; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
+        .card h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; }
+        .card p { margin-bottom: 1rem; color: #374151; }
+        
+        .notice { background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; font-size: 0.875rem; }
+        .notice strong { font-weight: 600; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        
+        /* Language Picker Styles */
+        .lang-switcher { display: flex; gap: 10px; margin-bottom: 2rem; }
+        .lang-btn { 
+            padding: 8px 16px; 
+            border-radius: 6px; 
+            border: 1px solid #d1d5db; 
+            background: white; 
+            font-size: 14px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+        }
+        .lang-btn:hover { background: #f9fafb; }
+        .lang-btn.active { background: #2563eb; color: white; border-color: #1d4ed8; }
+
+        /* Hide Google Translate UI elements */
+        #google_translate_element, .skiptranslate { display: none !important; }
+        body { top: 0px !important; }
+        .goog-te-banner-frame.skiptranslate { display: none !important; }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+
+        /* Error Notification */
+        #error-banner {
+            display: none;
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+            color: #b91c1c;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        /* Separator */
+        hr { 
+            border: 0; 
+            height: 1px; 
+            background: #e5e7eb; 
+            margin: 2rem 0; 
+        }
+    </style>
+</head>
+<body style="background-color: #f3f4f6;">
+
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Translation Test App</h1>
+            <p class="subtitle">Testing programmatic Google Translate integration without native widgets.</p>
+        </header>
+
+        <!-- Hidden Google Element -->
+        <div id="google_translate_element"></div>
+
+        <!-- Error Banner -->
+        <div id="error-banner">
+            <strong>⚠️ Environment Restriction:</strong> The external Google Translate script was blocked. 
+            This usually happens in restricted previews (like this one) due to security policies. 
+            Try running this file locally on your computer to see it in action.
+        </div>
+
+        <!-- Custom Buttons -->
+        <div class="lang-switcher">
+            <button class="lang-btn" id="btn-en" data-lang="en">English</button>
+            <button class="lang-btn" id="btn-fr" data-lang="fr">Français</button>
+            <button class="lang-btn" id="btn-es" data-lang="es">Español</button>
+            <button class="lang-btn" id="btn-de" data-lang="de">Deutsch</button>
+        </div>
+
+        <!-- Sample Content -->
+        <article class="card">
+            <h2>The Poet's Puzzle</h2>
+            <p>
+                A young poet decided to use a translation app to share her work with the world. She translated her poem about the moon, which described it as "a silver sentinel guarding the night." 
+            </p>
+            <p>
+                To her surprise, the translation into Japanese came back as "a silver bodyguard for the dark." Amused by the stark difference, she realized that translations are like mirrors—they reflect the same image, but the angle of reflection can change the meaning.
+            </p>
+            <p>
+                She embraced the new version and shared it, marveling at how her poem took on a life of its own across languages.
+            </p>
+        </article>
+
+        <hr>
+
+        <!-- Cookie Disclosure -->
+        <div class="notice">
+            <strong>ℹ️ Privacy Notice:</strong> Google Translate uses cookies to maintain translation state. 
+            This app stores only your language preference locally using localStorage (no server, no tracking).
+        </div>
+    </div>
+
+    <!-- Google Translate Script -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,fr,es,de',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script>
+        // Error handling for script load failures
+        function checkScriptLoad() {
+            if (typeof google === 'undefined' || typeof google.translate === 'undefined') {
+                document.getElementById('error-banner').style.display = 'block';
+            }
+        }
+
+        function changeLanguage(langCode) {
+            // Update button styles immediately
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === langCode);
+            });
+
+            let attempts = 0;
+            const maxAttempts = 50; // 5 seconds
+            
+            const poll = setInterval(() => {
+                const combo = document.querySelector('.goog-te-combo');
+                attempts++;
+
+                if (combo) {
+                    combo.value = langCode;
+                    combo.dispatchEvent(new Event('change'));
+                    localStorage.setItem('demo_lang_pref', langCode);
+                    clearInterval(poll);
+                } else if (attempts >= maxAttempts) {
+                    checkScriptLoad();
+                    clearInterval(poll);
+                }
+            }, 100);
+        }
+
+        // Initialize on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Attach event listeners to language buttons
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    changeLanguage(btn.dataset.lang);
+                });
+            });
+
+            // Restore saved language preference
+            const saved = localStorage.getItem('demo_lang_pref') || 'en';
+            setTimeout(() => {
+                if (saved !== 'en') {
+                    changeLanguage(saved);
+                } else {
+                    document.getElementById('btn-en').classList.add('active');
+                }
+            }, 500);
+
+            // Check for script load errors after delay
+            setTimeout(checkScriptLoad, 3000);
+        });
+    </script>
+</body>
+</html>

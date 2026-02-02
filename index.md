@@ -17,6 +17,7 @@ Welcome to Umabot Tools, an experimental collection of single-page web applicati
 | [Artemis II Launch Counter](artemis_launch_counter.html) | Countdown timer and information display for the Artemis II mission launch. [See more](dist/artemis_launch_counter/README.html) |
 | [GCal Participant List Cleaner](gcal_converter.html) | Creating a clean csv list of participants copying from Google Calendar participant lists. [See more](dist/gcal_converter/README.html) |
 | [Before & After Studio](image_comparison.html) | Interactive slider to compare two images side-by-side. Ideal for viewing how a picture changed after modifications using photo editing tools or AI/LLMs. [See more](dist/image_comparison/README.html) |
+| [Google Translate Integration Test](test_translate.html) | Demonstration of programmatic Google Translate integration with custom UI. Features language switching without the native widget, localStorage persistence, and privacy-first design. [See more](dist/test_translate/README.html) |
 
 ---
 
