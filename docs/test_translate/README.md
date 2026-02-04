@@ -1,12 +1,12 @@
-# Google Translate Integration Test
+# Google Translation quick setup
 
-A demonstration web app that integrates Google Translate programmatically without displaying the native widget UI. This app showcases how to build a custom language picker interface while leveraging Google's translation service behind the scenes.
+This app showcases how to build a custom language picker interface while leveraging Google's translation service behind the scenes.
 
 ## Features
 
 ### Custom Language Selector
 
-- **Clean UI**: Custom language buttons replace Google's default widget.
+- **Clean UI**: Custom language buttons that call the Google Translation service.
 - **Four Languages**: Switch between English, French, Spanish, and German.
 - **Active State**: Visual feedback shows the currently selected language.
 - **Persistent Choice**: Remembers your language preference using localStorage.

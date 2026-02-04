@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Translate Integration Test</title>
+    <title>Google Translate Test</title>
     <style>
         /* Reset & Base Styles */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -71,7 +71,7 @@
     <div class="container">
         <header class="header">
             <h1 class="title">Translation Test App</h1>
-            <p class="subtitle">Testing programmatic Google Translate integration without native widgets.</p>
+            <p class="subtitle">Testing programmatic Google Translate integration without the native widget.</p>
         </header>
 
         <!-- Hidden Google Element -->
@@ -89,7 +89,7 @@
             <button class="lang-btn" id="btn-en" data-lang="en">English</button>
             <button class="lang-btn" id="btn-fr" data-lang="fr">Français</button>
             <button class="lang-btn" id="btn-es" data-lang="es">Español</button>
-            <button class="lang-btn" id="btn-de" data-lang="de">Deutsch</button>
+            <button class="lang-btn" id="btn-de" data-lang="de">Tetum</button>
         </div>
 
         <!-- Sample Content -->
@@ -120,7 +120,7 @@
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
                 pageLanguage: 'en',
-                includedLanguages: 'en,fr,es,de',
+                includedLanguages: 'en,fr,es,tet',
                 autoDisplay: false
             }, 'google_translate_element');
         }
