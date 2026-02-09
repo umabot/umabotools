@@ -1,4 +1,5 @@
 ---
+skip_conversion: true
 tags:
   - blog
   - LinkedIn
