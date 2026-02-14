@@ -42,7 +42,10 @@ Umabotools is a collection of simple, standalone web applications and utility to
    - No user data collection
 
 3. **External Dependencies**
-   - Only use validated CDN libraries with integrity checks (SRI)
+   - **REQUIRED**: All CDN resources must have:
+     - Pinned version numbers (never use `@latest`)
+     - SHA-384 Subresource Integrity (SRI) hashes
+     - `crossorigin="anonymous"` attribute
    - Include security vulnerability checks for all dependencies
    - Prefer native browser APIs over external libraries when possible
 
@@ -263,6 +266,8 @@ Place company logo in `./assets/images/`:
 ## Common Patterns
 
 ### CDN Library with SRI
+
+**Required format for all JavaScript libraries:**
 ```html
 <script 
     src="https://cdn.jsdelivr.net/npm/library@1.0.0/dist/library.min.js"
@@ -270,6 +275,47 @@ Place company logo in `./assets/images/`:
     crossorigin="anonymous">
 </script>
 ```
+
+**Required format for CSS libraries:**
+```html
+<link 
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/library@1.0.0/dist/library.min.css"
+    integrity="sha384-HASH_HERE"
+    crossorigin="anonymous">
+```
+
+**Generating SRI hashes:**
+```bash
+# Using curl and openssl
+curl -s "https://cdn.example.com/library@1.0.0.js" | openssl dgst -sha384 -binary | openssl base64 -A
+```
+
+**Recommended CDN providers:**
+- `cdn.jsdelivr.net` - Provides SRI hashes on package pages
+- `cdnjs.cloudflare.com` - Provides SRI hashes in library info
+- `unpkg.com` - Reliable but generate SRI hashes manually
+
+**Special Cases:**
+
+1. **Tailwind CSS**: Use the pre-built CSS file, NOT the Play CDN
+   - ❌ `https://cdn.tailwindcss.com` (JIT compiler, no SRI support)
+   - ✅ `https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css` (with SRI)
+
+2. **Google Fonts**: Use `<link>` tags in `<head>`, NOT CSS `@import`
+   ```html
+   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap">
+   ```
+   Note: Google Fonts dynamically updates, SRI not practical
+
+3. **Google Services** (Translate, Maps, etc.): SRI not applicable
+   - These are dynamic APIs that update frequently
+   - Document as exceptions in security review
+
+**Version Pinning Rules:**
+- Always specify exact version: `library@1.2.3`
+- Never use: `@latest`, `@1.x`, or unversioned URLs
+- Keep a log of CDN versions in use for security audits
 
 ### localStorage Usage
 ```javascript
