@@ -317,6 +317,11 @@ curl -s "https://cdn.example.com/library@1.0.0.js" | openssl dgst -sha384 -binar
 - Never use: `@latest`, `@1.x`, or unversioned URLs
 - Keep a log of CDN versions in use for security audits
 
+**CDN Dependency Tracking:**
+- See **[CDN_INVENTORY.md](CDN_INVENTORY.md)** for complete library inventory
+- Update the inventory when adding, removing, or updating CDN libraries
+- Use inventory for security audits and version management
+
 ### localStorage Usage
 ```javascript
 // Save
