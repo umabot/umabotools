@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GenAI Photo Tagger & Renamer</title>
     <!-- Load Tailwind CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" integrity="sha384-wAkE1abywdsF0VP/+RDLxHADng231vt6gsqcjBzQFUoAQNkuN63+cJ4XDiE7LVjx" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Base styles for flags */
         .lang-button {
@@ -355,7 +355,7 @@
             const apiKey = getApiKey();
             if (!apiKey) return defaultInspiration;
             
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
             try {
                 const response = await fetch(apiUrl, {
@@ -587,7 +587,7 @@
                 throw new Error('⚠️ API Key Required - Please configure your Gemini API key above. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 underline">Get a free API key</a>');
             }
             
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
             
             // Placeholder for structured error response
             const structuredError = {
