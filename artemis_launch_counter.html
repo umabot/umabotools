@@ -312,7 +312,7 @@
         </div>
 
         <div class="time-info">
-            Launch Target (CET): <span id="target-display" style="color:white; font-weight: bold;">Mar 6, 2026, 07:29:00</span>
+            Launch Target (CET): <span id="target-display" style="color:white; font-weight: bold;">Apr 1, 2026, 07:29:00</span>
             <a class="local-link" onclick="openModal()">Convert to Local Time</a>
         </div>
         <div id="local-time-note" style="display:none; margin-top: 15px; font-size: 0.95rem; background: rgba(252, 61, 33, 0.2); padding: 5px 15px; border-radius: 15px; border: 1px solid var(--nasa-red);">
@@ -358,7 +358,7 @@
          */
         
         // Target Launch Date in CET (Format YYYY-MM-DD:HH:mm:ss)
-        const LAUNCH_DATE_STR = "2026-03-06:07:29:00"; 
+        const LAUNCH_DATE_STR = "2026-04-01:07:29:00"; 
 
         // EASY CITY UPDATE SECTION
         // Add new cities here. Ensure 'tz' is a valid IANA timezone name.
@@ -552,9 +552,19 @@
                 title: "Following Confidence Test, NASA Continues Artemis II Data Review",
                 text: "As part of robustly testing the vehicle prior to flight, NASA engineers are reviewing data after a confidence test Feb. 12, in which operators partially filled the SLS (Space Launch System) core stage liquid hydrogen tank to assess newly replaced seals in an area used to fill the rocket with propellant.",
                 link: "https://www.nasa.gov/blogs/missions/2026/02/13/following-confidence-test-nasa-continues-artemis-ii-data-review/"
+            },
+            {
+                source: "BBC Sky at Night",
+                title: "NASA launch dates for Artemis II",
+                text: "Potential launch dates for the Artemis II mission to the Moon",
+                link: "https://www.skyatnightmagazine.com/news/when-will-artemis-ii-launch"
+            },
+             {
+                source: "NASA Missions",
+                title: "Teams Begin Artemis II Repairs in Vehicle Assembly Building",
+                text: "Once NASA’s Artemis II SLS (Space Launch System) rocket and Orion spacecraft arrived at the Vehicle Assembly Building (VAB) Feb. 25, technicians immediately began addressing why the flow of helium to the SLS upper stage was interrupted as engineers were reconfiguring the rocket following a successful wet dress rehearsal on Feb. 21",
+                link: "https://www.nasa.gov/blogs/missions/2026/02/26/teams-begin-artemis-ii-repairs-in-vehicle-assembly-building/"
             }
-
-
         ];
 
         function parseLaunchDate(str) {
