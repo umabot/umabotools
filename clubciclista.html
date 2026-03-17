@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Ciclista — Pedalea con Nosotros</title>
+
+    <!-- Google Fonts (documented exception: no SRI) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+
+    <!-- Tailwind CSS -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css"
+        integrity="sha384-wAkE1abywdsF0VP/+RDLxHADng231vt6gsqcjBzQFUoAQNkuN63+cJ4XDiE7LVjx"
+        crossorigin="anonymous">
+
+    <!-- Lucide Icons -->
+    <script
+        src="https://unpkg.com/lucide@0.563.0/dist/umd/lucide.min.js"
+        integrity="sha384-aRB6X3zBuyu5EQF6GZFp0RCYdOwxYAOdFk4nViPfqSXYxc+MrZlqbM+nUYRwDQn1"
+        crossorigin="anonymous">
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #1f2937;
+        }
+
+        /* ─── Google Translate: hide native widget ─── */
+        #google_translate_element, .skiptranslate { display: none !important; }
+        body { top: 0px !important; }
+        .goog-te-banner-frame.skiptranslate { display: none !important; }
+        .goog-text-highlight { background: none !important; box-shadow: none !important; }
+
+        /* ─── Top Navigation Bar ─── */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: #111827;
+        }
+        .nav-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-logo-icon svg { color: white; }
+        .nav-logo-text {
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.025em;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            list-style: none;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: #2563eb; }
+
+        /* Language buttons */
+        .lang-switcher {
+            display: flex;
+            gap: 4px;
+        }
+        .lang-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            background: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #374151;
+        }
+        .lang-btn:hover { background: #f3f4f6; }
+        .lang-btn.active { background: #2563eb; color: white; border-color: #1d4ed8; }
+
+        /* ─── Mobile hamburger ─── */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .hamburger svg { color: #374151; }
+
+        @media (max-width: 768px) {
+            .hamburger { display: block; }
+            .nav-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                gap: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid #e5e7eb;
+            }
+            .nav-links.open { display: flex; }
+        }
+
+        /* ─── Hero Carousel ─── */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            min-height: 400px;
+            max-height: 700px;
+            overflow: hidden;
+            background: #111827;
+        }
+        .hero-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-slide.active { opacity: 1; }
+        .hero-slide-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.55);
+        }
+        .hero-overlay {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+            padding: 2rem;
+            max-width: 800px;
+        }
+        .hero-overlay h2 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .hero-overlay p {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+        .hero-cta {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .hero-cta:hover { background: #1d4ed8; }
+        .hero-dots {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .hero-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            background: transparent;
+            cursor: pointer;
+            transition: background 0.3s;
+            padding: 0;
+        }
+        .hero-dot.active { background: white; }
+        .hero-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        .hero-arrow:hover { background: rgba(255,255,255,0.4); }
+        .hero-arrow.prev { left: 1rem; }
+        .hero-arrow.next { right: 1rem; }
+
+        /* ─── Section layout ─── */
+        .section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 5rem 1.5rem;
+        }
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+        .section-subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ─── Intro / Why Join ─── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        .feature-card {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid #e5e7eb;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+        .feature-card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            transform: translateY(-4px);
+        }
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: #eff6ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .feature-icon svg { color: #2563eb; }
+        .feature-card h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .feature-card p { color: #6b7280; font-size: 0.95rem; }
+
+        /* ─── Routes Carousel ─── */
+        .routes-bg { background: #f9fafb; }
+        .routes-track {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 1rem;
+            scrollbar-width: thin;
+        }
+        .route-card {
+            flex: 0 0 280px;
+            scroll-snap-align: start;
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            transition: box-shadow 0.3s;
+        }
+        .route-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+        .route-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background-size: cover;
+            background-position: center;
+        }
+        .route-info { padding: 1.25rem; }
+        .route-info h3 { font-weight: 700; margin-bottom: 0.25rem; }
+        .route-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        .route-meta span { display: flex; align-items: center; gap: 4px; }
+        .route-info p { font-size: 0.9rem; color: #4b5563; }
+        .past-routes-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            color: #2563eb;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .past-routes-link:hover { text-decoration: underline; }
+
+        /* ─── Members ─── */
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+        .member-card { text-align: center; }
+        .member-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, #dbeafe, #c7d2fe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4338ca;
+            border: 3px solid #e0e7ff;
+        }
+        .member-card h3 { font-weight: 700; font-size: 1rem; }
+        .member-card .member-role {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        /* ─── About & Contact ─── */
+        .about-bg { background: #f9fafb; }
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+        @media (max-width: 768px) {
+            .about-grid { grid-template-columns: 1fr; }
+        }
+        .about-text p { color: #4b5563; margin-bottom: 1rem; line-height: 1.7; }
+        .contact-form { display: flex; flex-direction: column; gap: 1rem; }
+        .contact-form label {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        .contact-form input,
+        .contact-form textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        .contact-form input:focus,
+        .contact-form textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        .contact-form textarea { resize: vertical; min-height: 100px; }
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: #1d4ed8; }
+
+        /* ─── Footer ─── */
+        .site-footer {
+            background: #111827;
+            color: #9ca3af;
+            padding: 3rem 1.5rem 2rem;
+        }
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+        }
+        .footer-col h4 {
+            color: white;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .footer-col p, .footer-col a {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            line-height: 1.8;
+        }
+        .footer-col a { text-decoration: none; display: block; }
+        .footer-col a:hover { color: #60a5fa; }
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 2rem auto 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid #374151;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            font-size: 0.8rem;
+        }
+        .footer-bottom a { color: #60a5fa; text-decoration: none; }
+        .footer-bottom a:hover { text-decoration: underline; }
+
+        /* ─── Notification Toast ─── */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #065f46;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ─── Placeholder images ─── */
+        .placeholder-bg-1 { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #60a5fa 100%); }
+        .placeholder-bg-2 { background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #34d399 100%); }
+        .placeholder-bg-3 { background: linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #a78bfa 100%); }
+        .placeholder-bg-4 { background: linear-gradient(135deg, #92400e 0%, #d97706 50%, #fbbf24 100%); }
+
+        /* ─── Error banner ─── */
+        #error-banner {
+            display: none;
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+            color: #b91c1c;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            max-width: 1200px;
+            margin: 0.5rem auto;
+        }
+
+        /* ─── Smooth scrolling ─── */
+        html { scroll-behavior: smooth; }
+    </style>
+</head>
+<body>
+
+    <!-- Hidden Google Translate Element -->
+    <div id="google_translate_element"></div>
+
+    <!-- Error Banner for translation script -->
+    <div id="error-banner">
+        <strong>⚠️ Translation unavailable:</strong> The Google Translate script was blocked.
+        Try running this file locally to enable translations.
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TOP NAVIGATION                              -->
+    <!-- ═══════════════════════════════════════════ -->
+    <nav class="top-nav">
+        <div class="nav-inner">
+            <!-- Logo -->
+            <a href="#" class="nav-logo">
+                <div class="nav-logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="18.5" cy="17.5" r="3.5"/>
+                        <circle cx="5.5" cy="17.5" r="3.5"/>
+                        <circle cx="15" cy="5" r="1"/>
+                        <path d="M12 17.5V14l-3.5-3.5 2-2.5 5 4L17 11"/>
+                    </svg>
+                </div>
+                <span class="nav-logo-text">Club Ciclista</span>
+            </a>
+
+            <!-- Hamburger (mobile) -->
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation menu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" x2="20" y1="6" y2="6"/>
+                    <line x1="4" x2="20" y1="12" y2="12"/>
+                    <line x1="4" x2="20" y1="18" y2="18"/>
+                </svg>
+            </button>
+
+            <!-- Desktop Links -->
+            <ul class="nav-links" id="nav-links">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#unete">Únete</a></li>
+                <li><a href="#rutas">Rutas</a></li>
+                <li><a href="#miembros">Miembros</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+                <li>
+                    <!-- Language Switcher -->
+                    <div class="lang-switcher">
+                        <button class="lang-btn active" data-lang="es">ES</button>
+                        <button class="lang-btn" data-lang="en">EN</button>
+                        <button class="lang-btn" data-lang="fr">FR</button>
+                        <button class="lang-btn" data-lang="pt">PT</button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- HERO CAROUSEL                               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="hero" id="inicio">
+        <!-- Slide 1 -->
+        <div class="hero-slide active">
+            <div class="hero-slide-bg placeholder-bg-1"></div>
+            <div class="hero-overlay">
+                <h2>Pedalea con Nosotros</h2>
+                <p>Descubre las mejores rutas, haz amigos y mejora tu forma física con nuestro club ciclista.</p>
+                <a href="#unete" class="hero-cta">Únete al Club</a>
+            </div>
+        </div>
+        <!-- Slide 2 -->
+        <div class="hero-slide">
+            <div class="hero-slide-bg placeholder-bg-2"></div>
+            <div class="hero-overlay">
+                <h2>Rutas para Todos los Niveles</h2>
+                <p>Desde paseos suaves hasta desafíos de montaña — hay una ruta para ti.</p>
+                <a href="#rutas" class="hero-cta">Ver Rutas</a>
+            </div>
+        </div>
+        <!-- Slide 3 -->
+        <div class="hero-slide">
+            <div class="hero-slide-bg placeholder-bg-3"></div>
+            <div class="hero-overlay">
+                <h2>Comunidad y Amistad</h2>
+                <p>Más que un club, somos una familia sobre dos ruedas.</p>
+                <a href="#miembros" class="hero-cta">Conócenos</a>
+            </div>
+        </div>
+
+        <!-- Arrows -->
+        <button class="hero-arrow prev" id="hero-prev" aria-label="Previous slide">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="hero-arrow next" id="hero-next" aria-label="Next slide">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+        <!-- Dots -->
+        <div class="hero-dots" id="hero-dots"></div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- INTRO — WHY JOIN US?                        -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="unete">
+        <h2 class="section-title">¿Por qué unirte a nosotros?</h2>
+        <p class="section-subtitle">Somos un club abierto a ciclistas de todos los niveles. Aquí encontrarás motivación, compañerismo y aventura.</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon" data-icon="map-pin"></div>
+                <h3>Rutas Guiadas</h3>
+                <p>Organizamos salidas semanales por las mejores carreteras y caminos de la zona.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" data-icon="users"></div>
+                <h3>Comunidad Activa</h3>
+                <p>Más de 100 miembros que comparten la pasión por el ciclismo y el aire libre.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" data-icon="trophy"></div>
+                <h3>Eventos y Retos</h3>
+                <p>Participa en nuestras competiciones amistosas, marchas cicloturistas y quedadas sociales.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" data-icon="heart"></div>
+                <h3>Salud y Bienestar</h3>
+                <p>Mejora tu forma física mientras disfrutas del paisaje y la compañía.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- ROUTES SECTION                              -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="routes-bg" id="rutas">
+        <div class="section">
+            <h2 class="section-title">Próximas Rutas</h2>
+            <p class="section-subtitle">Consulta nuestras próximas salidas y apúntate. ¡No te quedes sin plaza!</p>
+
+            <div class="routes-track" id="routes-track">
+                <!-- Route 1 -->
+                <div class="route-card">
+                    <div class="route-img placeholder-bg-1" role="img" aria-label="Ruta Sierra Norte"></div>
+                    <div class="route-info">
+                        <h3>Sierra Norte Explorer</h3>
+                        <div class="route-meta">
+                            <span data-icon-small="calendar">22 Mar 2026</span>
+                            <span data-icon-small="clock">08:00</span>
+                            <span data-icon-small="ruler">72 km</span>
+                        </div>
+                        <p>Ascenso por Puerto de Canencia con vistas espectaculares. Dificultad media-alta.</p>
+                    </div>
+                </div>
+                <!-- Route 2 -->
+                <div class="route-card">
+                    <div class="route-img placeholder-bg-2" role="img" aria-label="Ruta Vía Verde"></div>
+                    <div class="route-info">
+                        <h3>Vía Verde del Tajuña</h3>
+                        <div class="route-meta">
+                            <span data-icon-small="calendar">29 Mar 2026</span>
+                            <span data-icon-small="clock">09:00</span>
+                            <span data-icon-small="ruler">45 km</span>
+                        </div>
+                        <p>Ruta familiar y accesible por la antigua vía del tren. Ideal para principiantes.</p>
+                    </div>
+                </div>
+                <!-- Route 3 -->
+                <div class="route-card">
+                    <div class="route-img placeholder-bg-3" role="img" aria-label="Ruta Navacerrada"></div>
+                    <div class="route-info">
+                        <h3>Navacerrada Challenge</h3>
+                        <div class="route-meta">
+                            <span data-icon-small="calendar">05 Abr 2026</span>
+                            <span data-icon-small="clock">07:30</span>
+                            <span data-icon-small="ruler">95 km</span>
+                        </div>
+                        <p>Reto de ascenso al Puerto de Navacerrada. Solo para ciclistas experimentados.</p>
+                    </div>
+                </div>
+                <!-- Route 4 -->
+                <div class="route-card">
+                    <div class="route-img placeholder-bg-4" role="img" aria-label="Ruta Aranjuez"></div>
+                    <div class="route-info">
+                        <h3>Aranjuez Real</h3>
+                        <div class="route-meta">
+                            <span data-icon-small="calendar">12 Abr 2026</span>
+                            <span data-icon-small="clock">08:30</span>
+                            <span data-icon-small="ruler">60 km</span>
+                        </div>
+                        <p>Recorrido llano junto al Tajo, pasando por los Jardines del Príncipe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="#" class="past-routes-link" id="past-routes-link">
+                    Ver rutas anteriores
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MEMBERS                                     -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="section" id="miembros">
+        <h2 class="section-title">Nuestro Equipo</h2>
+        <p class="section-subtitle">Conoce a las personas que hacen posible este club. Directiva, coordinadores y embajadores.</p>
+
+        <div class="members-grid">
+            <div class="member-card">
+                <div class="member-avatar">CM</div>
+                <h3>Carlos Martínez</h3>
+                <p class="member-role">Presidente</p>
+            </div>
+            <div class="member-card">
+                <div class="member-avatar">LR</div>
+                <h3>Laura Rodríguez</h3>
+                <p class="member-role">Vicepresidenta</p>
+            </div>
+            <div class="member-card">
+                <div class="member-avatar">PG</div>
+                <h3>Pablo García</h3>
+                <p class="member-role">Coordinador de Rutas</p>
+            </div>
+            <div class="member-card">
+                <div class="member-avatar">AF</div>
+                <h3>Ana Fernández</h3>
+                <p class="member-role">Tesorera</p>
+            </div>
+            <div class="member-card">
+                <div class="member-avatar">MS</div>
+                <h3>Miguel Sánchez</h3>
+                <p class="member-role">Comunicación</p>
+            </div>
+            <div class="member-card">
+                <div class="member-avatar">EL</div>
+                <h3>Elena López</h3>
+                <p class="member-role">Mecánica del Club</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- ABOUT & CONTACT                             -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="about-bg" id="contacto">
+        <div class="section">
+            <h2 class="section-title">Sobre Nosotros</h2>
+            <p class="section-subtitle">Fundado en 2018, nuestro club nació de un grupo de amigos que querían compartir su pasión por la bicicleta.</p>
+
+            <div class="about-grid">
+                <div class="about-text">
+                    <p>
+                        Somos un club ciclista sin ánimo de lucro abierto a personas de todas las edades y niveles.
+                        Organizamos salidas semanales los sábados y domingos, eventos especiales y quedadas sociales.
+                    </p>
+                    <p>
+                        Nuestro objetivo es fomentar el ciclismo como deporte saludable, medio de transporte sostenible
+                        y forma de crear comunidad. Estamos federados y ofrecemos seguro deportivo a todos nuestros socios.
+                    </p>
+                    <p>
+                        <strong>Punto de encuentro:</strong> Plaza Mayor, todos los sábados a las 08:00.<br>
+                        <strong>Email:</strong> info@clubciclistaejemplo.es<br>
+                        <strong>Teléfono:</strong> +34 612 345 678
+                    </p>
+                </div>
+
+                <div>
+                    <h3 style="font-weight: 700; margin-bottom: 1rem;">Escríbenos</h3>
+                    <form class="contact-form" id="contact-form">
+                        <div>
+                            <label for="contact-name">Nombre</label>
+                            <input type="text" id="contact-name" name="name" required autocomplete="name" maxlength="100">
+                        </div>
+                        <div>
+                            <label for="contact-email">Email</label>
+                            <input type="email" id="contact-email" name="email" required autocomplete="email" maxlength="200">
+                        </div>
+                        <div>
+                            <label for="contact-message">Mensaje</label>
+                            <textarea id="contact-message" name="message" required maxlength="2000"></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">Enviar Mensaje</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- FOOTER                                      -->
+    <!-- ═══════════════════════════════════════════ -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <h4>Club Ciclista</h4>
+                <p>Promoviendo el ciclismo y la vida saludable desde 2018. Club registrado con N.º 12345 en el Registro de Asociaciones.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Enlaces</h4>
+                <a href="#inicio">Inicio</a>
+                <a href="#unete">Únete</a>
+                <a href="#rutas">Rutas</a>
+                <a href="#miembros">Miembros</a>
+                <a href="#contacto">Contacto</a>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <a href="#">Política de Privacidad</a>
+                <a href="#">Aviso Legal</a>
+                <a href="#">Estatutos del Club</a>
+                <a href="#">Protección de Datos (RGPD)</a>
+            </div>
+            <div class="footer-col">
+                <h4>Contacto</h4>
+                <p>Plaza Mayor s/n<br>28001 Madrid, España</p>
+                <p>info@clubciclistaejemplo.es<br>+34 612 345 678</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Club Ciclista. Todos los derechos reservados.</p>
+            <p>CIF: G-12345678 &middot; Registro de Asociaciones N.º 12345</p>
+            <p>Web creada por <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer">InnovUmabot</a></p>
+        </div>
+    </footer>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Google Translate (documented exception)     -->
+    <!-- ═══════════════════════════════════════════ -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'es',
+                includedLanguages: 'es,en,fr,pt',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Main Application Script                     -->
+    <!-- ═══════════════════════════════════════════ -->
+    <script>
+        (function () {
+            'use strict';
+
+            // ── Utility: show toast message ──
+            function showToast(message) {
+                var toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.classList.add('show');
+                setTimeout(function () {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            // ── Utility: check Google Translate loaded ──
+            function checkScriptLoad() {
+                if (typeof google === 'undefined' || typeof google.translate === 'undefined') {
+                    document.getElementById('error-banner').style.display = 'block';
+                }
+            }
+
+            // ── Lucide Icons Initialization ──
+            function initIcons() {
+                // Feature cards
+                var iconMap = {
+                    'map-pin': 'map-pin',
+                    'users': 'users',
+                    'trophy': 'trophy',
+                    'heart': 'heart'
+                };
+                document.querySelectorAll('.feature-icon[data-icon]').forEach(function (el) {
+                    var iconName = el.getAttribute('data-icon');
+                    var svg = document.createElement('i');
+                    svg.setAttribute('data-lucide', iconName);
+                    el.appendChild(svg);
+                });
+
+                // Route meta icons
+                var smallIconMap = {
+                    'calendar': 'calendar',
+                    'clock': 'clock',
+                    'ruler': 'ruler'
+                };
+                document.querySelectorAll('[data-icon-small]').forEach(function (el) {
+                    var iconName = el.getAttribute('data-icon-small');
+                    var svg = document.createElement('i');
+                    svg.setAttribute('data-lucide', iconName);
+                    svg.style.width = '14px';
+                    svg.style.height = '14px';
+                    el.prepend(svg);
+                });
+
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+
+            // ── Hero Carousel ──
+            function initHeroCarousel() {
+                var slides = document.querySelectorAll('.hero-slide');
+                var dotsContainer = document.getElementById('hero-dots');
+                var currentIndex = 0;
+                var totalSlides = slides.length;
+                var autoplayTimer = null;
+
+                // Create dots
+                for (var i = 0; i < totalSlides; i++) {
+                    var dot = document.createElement('button');
+                    dot.classList.add('hero-dot');
+                    dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+                    dot.dataset.index = i;
+                    if (i === 0) dot.classList.add('active');
+                    dotsContainer.appendChild(dot);
+                }
+
+                function goToSlide(index) {
+                    slides[currentIndex].classList.remove('active');
+                    dotsContainer.children[currentIndex].classList.remove('active');
+                    currentIndex = (index + totalSlides) % totalSlides;
+                    slides[currentIndex].classList.add('active');
+                    dotsContainer.children[currentIndex].classList.add('active');
+                }
+
+                function startAutoplay() {
+                    stopAutoplay();
+                    autoplayTimer = setInterval(function () {
+                        goToSlide(currentIndex + 1);
+                    }, 5000);
+                }
+
+                function stopAutoplay() {
+                    if (autoplayTimer) clearInterval(autoplayTimer);
+                }
+
+                // Arrow buttons
+                document.getElementById('hero-prev').addEventListener('click', function () {
+                    goToSlide(currentIndex - 1);
+                    startAutoplay();
+                });
+                document.getElementById('hero-next').addEventListener('click', function () {
+                    goToSlide(currentIndex + 1);
+                    startAutoplay();
+                });
+
+                // Dot buttons
+                dotsContainer.addEventListener('click', function (e) {
+                    var dot = e.target.closest('.hero-dot');
+                    if (!dot) return;
+                    goToSlide(parseInt(dot.dataset.index, 10));
+                    startAutoplay();
+                });
+
+                startAutoplay();
+            }
+
+            // ── Language Switcher (Google Translate) ──
+            function initLanguageSwitcher() {
+                function changeLanguage(langCode) {
+                    document.querySelectorAll('.lang-btn').forEach(function (btn) {
+                        btn.classList.toggle('active', btn.dataset.lang === langCode);
+                    });
+
+                    var attempts = 0;
+                    var maxAttempts = 50;
+
+                    var poll = setInterval(function () {
+                        var combo = document.querySelector('.goog-te-combo');
+                        attempts++;
+
+                        if (combo) {
+                            combo.value = langCode;
+                            combo.dispatchEvent(new Event('change'));
+                            localStorage.setItem('club_lang_pref', langCode);
+                            clearInterval(poll);
+                        } else if (attempts >= maxAttempts) {
+                            checkScriptLoad();
+                            clearInterval(poll);
+                        }
+                    }, 100);
+                }
+
+                document.querySelectorAll('.lang-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        changeLanguage(btn.dataset.lang);
+                    });
+                });
+
+                // Restore saved preference
+                var saved = localStorage.getItem('club_lang_pref') || 'es';
+                setTimeout(function () {
+                    if (saved !== 'es') {
+                        changeLanguage(saved);
+                    }
+                }, 500);
+
+                setTimeout(checkScriptLoad, 3000);
+            }
+
+            // ── Mobile Navigation Toggle ──
+            function initMobileNav() {
+                document.getElementById('hamburger-btn').addEventListener('click', function () {
+                    document.getElementById('nav-links').classList.toggle('open');
+                });
+
+                // Close menu when clicking a nav link
+                document.querySelectorAll('.nav-links a').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        document.getElementById('nav-links').classList.remove('open');
+                    });
+                });
+            }
+
+            // ── Contact Form Handler ──
+            function initContactForm() {
+                document.getElementById('contact-form').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    // In a real app this would POST to a backend / Google Apps Script proxy
+                    showToast('¡Mensaje enviado! Te responderemos pronto.');
+                    e.target.reset();
+                });
+            }
+
+            // ── Past Routes Link ──
+            function initPastRoutes() {
+                document.getElementById('past-routes-link').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    showToast('Sección de rutas anteriores — próximamente.');
+                });
+            }
+
+            // ── Boot ──
+            document.addEventListener('DOMContentLoaded', function () {
+                initIcons();
+                initHeroCarousel();
+                initLanguageSwitcher();
+                initMobileNav();
+                initContactForm();
+                initPastRoutes();
+            });
+        })();
+    </script>
+</body>
+</html>
