@@ -133,6 +133,64 @@
             letter-spacing: 1px;
         }
 
+        .news-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px 14px;
+            border: 1px solid #2a2e35;
+            border-radius: 10px;
+            background: rgba(26, 29, 35, 0.85);
+        }
+
+        .news-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .news-btn {
+            border: 1px solid #36415a;
+            background: #151922;
+            color: var(--text-light);
+            border-radius: 8px;
+            padding: 9px 14px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease;
+        }
+
+        .news-btn:hover:enabled {
+            border-color: var(--nasa-blue);
+            transform: translateY(-1px);
+        }
+
+        .news-btn.active {
+            background: var(--nasa-blue);
+            border-color: var(--nasa-blue);
+            color: white;
+        }
+
+        .news-btn.secondary {
+            background: #0f1320;
+        }
+
+        .news-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        #news-status {
+            font-size: 0.85rem;
+            color: #bcc8de;
+            font-weight: 600;
+        }
+
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -182,6 +240,15 @@
             color: var(--nasa-red);
             font-weight: bold;
             text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .card .news-date {
+            font-size: 0.78rem;
+            color: #9cb0d8;
+            font-weight: 700;
+            letter-spacing: 0.4px;
             margin-bottom: 12px;
             display: block;
         }
@@ -295,6 +362,8 @@
             .time-val { font-size: 2rem; }
             .time-box { min-width: 80px; padding: 15px; }
             header { padding: 40px 15px; }
+            .news-controls { align-items: flex-start; }
+            #news-status { width: 100%; }
         }
     </style>
 </head>
@@ -322,13 +391,22 @@
 
     <main class="content-section">
         <h2 class="section-title">Mission Updates</h2>
+        <div class="news-controls" aria-label="News navigation controls">
+            <div class="news-actions">
+                <button id="btn-date-desc" class="news-btn active" type="button">Date DESC</button>
+                <button id="btn-feeling-lucky" class="news-btn secondary" type="button">Feeling Lucky</button>
+                <button id="btn-prev-news" class="news-btn secondary" type="button">Previous</button>
+                <button id="btn-next-news" class="news-btn secondary" type="button">Next</button>
+            </div>
+            <div id="news-status" aria-live="polite"></div>
+        </div>
         <div class="cards-grid" id="news-grid">
             <!-- Populated by JS -->
         </div>
     </main>
 
     <footer>
-        <p>&copy; 2026 Artemis Mission Tracker. Refresh the page for new mission insights.</p>
+        <p>&copy; 2026 Artemis Mission Tracker. Browse latest updates or try your luck for a random briefing.</p>
         <p>Source Data: <a href="https://www.nasa.gov/mission/artemis-ii/" target="_blank">NASA Artemis II Official Page</a></p>
         <span class="photo-credit" id="footer-photo-credit">
             Hero Photo: <a href="https://images.nasa.gov/details-KSC-20210907-PH-KLS01_0003" target="_blank">SLS Rocket Integration</a> 
@@ -451,138 +529,180 @@
         // NEWS POOL
         const newsPool = [
             {
+                date: "2025-09-30",
                 source: "NASA Blogs Artemis",
                 title: "NASA Draws Closer to Artemis II Rocket Completion with Newest Addition",
                 text: "NASA integrated the Artemis II Orion stage adapter with the rest of the SLS (Space Launch System) rocket on Wednesday in the Vehicle Assembly Building at Kennedy Space Center.",
                 link: "https://www.nasa.gov/blogs/missions/2025/09/30/nasa-draws-closer-to-artemis-ii-rocket-completion-with-newest-addition/"
             },
             {
+                date: "2026-01-15",
                 source: "BBC Sky at Night",
                 title: "Artemis II astronauts will take bone marrow 'avatars' to the Moon, to see how damaging spaceflight really is",
                 text: "Small chips containing human cells could help prepare humans for long space journeys",
                 link: "https://www.skyatnightmagazine.com/news/artemis-ii-bone-marrow-avatar-experiment"
             },
             {
+                date: "2025-09-24",
                 source: "NASA Blogs Artemis",
                 title: "Artemis II Crew Members Name Their Orion Spacecraft",
                 text: "The Artemis II crew members named their Orion spacecraft Integrity during a news conference Sept. 24",
                 link: "https://www.nasa.gov/blogs/missions/2025/09/24/artemis-ii-crew-members-name-their-orion-spacecraft/"
             },
             {
+                date: "2025-04-08",
                 source: "NASA Missions",
                 title: "NASA First Flight With Crew Important Step on Long-term Return to the Moon, Missions to Mars",
                 text: "The Artemis II test flight will be NASA’s first mission with crew under Artemis. Astronauts on their first flight aboard NASA’s Orion spacecraft will confirm all of the spacecraft’s systems operate as designed with crew aboard in the actual environment of deep space.",
                 link: "https://www.nasa.gov/missions/artemis/nasas-first-flight-with-crew-important-step-on-long-term-return-to-the-moon-missions-to-mars/"
             },
             {
+                date: "2026-01-14",
                 source: "NASA News",
                 title: "Coverage, Briefing Set for NASA’s Artemis II Moon Rocket Roll to Pad",
                 text: "NASA’s integrated SLS (Space Launch System) rocket and Orion spacecraft for the Artemis II mission is inching closer to launch – literally.",
                 link: "https://www.nasa.gov/news-release/coverage-briefing-set-for-nasas-artemis-ii-moon-rocket-roll-to-pad/"
             },
             {
+                date: "2025-01-13",
                 source: "NASA Podcasts",
                 title: "Artemis II: Meet the Moonbound Astronauts",
                 text: "NASA is going back to the Moon, and Curious Universe is bringing podcast listeners along for the Artemis II journey",
                 link: "https://www.nasa.gov/podcasts/curious-universe/artemis-ii-meet-the-astronauts/"
             },
             {
+                date: "2025-12-23",
                 source: "NASA",
                 title: "Get In, We’re Going Moonbound: Meet NASA’s Artemis Closeout Crew",
                 text: "For most, getting into a car is a task that can be done without assistance. Yet for those whose destination is the Moon, the process of getting inside and secured – in this case, in NASA’s Orion spacecraft – requires help. That’s the role of the Artemis closeout crew",
                 link: "https://www.nasa.gov/centers-and-facilities/kennedy/get-in-were-going-to-the-moon-meet-nasas-artemis-closeout-crew/"
             },
             {
+                date: "2026-02-12",
                 source: "BBC Sky at Night",
                 title: "From lunar blackout to engine failure... 8 things to know about NASA's return to the Moon next month",
                 text: "What you need to know about NASA's Artemis II mission",
                 link: "https://www.skyatnightmagazine.com/news/artemis-ii-facts"
             },
             {
+                date: "2023-02-28",
                 source: "NASA Missions",
                 title: "Artemis II Map",
                 text: "The Artemis II test flight will pave the way to land the next Americans on the Moon on Artemis III",
                 link: "https://www.nasa.gov/missions/artemis/artemis-ii-map/"
             },
             {
+                date: "2026-01-22",
                 source: "NASA",
                 title: "Artemis II Reference Guide",
                 text: "These documents were prepared by NASA’s SLS (Space Launch System) Program Office at NASA’s Marshall Space Flight Center in Huntsville, Alabama, which is responsible for the design, development, testing, and engineering of the SLS, NASA’s super heavy-lift rocket that will send astronauts to the Moon as part of the Artemis missions",
                 link: "https://www.nasa.gov/humans-in-space/space-launch-system/reference-guide/"
             },
             {
+                date: "2026-01-16",
                 source: "NASA Blogs Artemis",
                 title: "Artemis II Moon Rocket Ready for Big Move",
                 text: "Inside the Vehicle Assembly Building at NASA’s Kennedy Space Center in Florida, the agency’s Artemis II Moon rocket stands poised for the next step in its journey. Engineers are targeting no earlier than 7 a.m. EST, Saturday, Jan. 17, to begin rolling NASA’s powerful SLS (Space Launch System) rocket and Orion spacecraft, atop the mobile launcher, to the spaceport’s Launch Pad 39B",
                 link: "https://www.nasa.gov/blogs/missions/2026/01/16/artemis-ii-moon-rocket-ready-for-big-move/"
             },
             {
+                date: "2026-01-17",
                 source: "NASA Blogs Artemis",
                 title: "NASA’s Moonbound Artemis II Rocket Reaches Launch Pad",
                 text: "NASA’s Artemis II Moon rocket and spacecraft have arrived at Launch Pad 39B at the agency’s Kennedy Space Center in Florida, marking a major milestone in preparations for humanity’s first crewed mission to the Moon in more than 50 years.",
                 link: "https://www.nasa.gov/blogs/missions/2026/01/17/nasas-moonbound-artemis-ii-rocket-reaches-launch-pad/"
             },
             {
+                date: "2026-03-09",
                 source: "NASA News",
-                title: "NASA’s Artemis II Moon Rocket, Spacecraft Ready for Launch",
-                text: "NASA’s Artemis II Moon rocket and spacecraft are ready for launch following the completion of a series of tests and checkouts at Launch Pad 39B at the agency’s Kennedy Space Center in Florida.",
-                link: "https://www.nasa.gov/news-release/nasas-artemis-ii-moon-rocket-spacecraft-ready-for-launch/"
+                title: "NASA to Share Artemis II Flight Readiness Review Update",
+                text: "NASA will host a news conference at 3 p.m. EDT, Thursday, March 12, to highlight progress toward the Artemis II crewed mission around the Moon. The media briefing will take place from the agency’s Kennedy Space Center in Florida after the conclusion of an Artemis II Flight Readiness Review.",
+                link: "https://www.nasa.gov/news-release/nasa-to-share-artemis-ii-flight-readiness-review-update/"
             },
             {
+                date: "2026-03-18",
                 source: "NASA Artemis",
                 title: "Artemis II Crew",
                 text: "Meet the astronauts who will venture around the Moon on Artemis II, the first crewed flight aboard NASA’s human deep space capabilities, paving the way for future lunar surface missions.",
                 link: "https://www.nasa.gov/feature/our-artemis-crew/"
             },
             {
+                date: "2026-01-23",
                 source: "NASA News",
                 title: "NASA Selects Participants to Track Artemis II Mission",
                 text: "NASA has selected 34 global volunteers to track the Orion spacecraft during the crewed Artemis II mission’s journey around the Moon",
                 link: "https://www.nasa.gov/technology/space-comms/nasa-selects-participants-to-track-artemis-ii-mission/"
             },
             {
+                date: "2026-01-30",
                 source: "NASA Blogs Artemis",
                 title: "NASA Updates Artemis II Wet Dress Rehearsal, Launch Opportunities",
                 text: "NASA is targeting Monday, Feb. 2, as the tanking day for the upcoming Artemis II wet dress rehearsal at the agency’s Kennedy Space Center in Florida, as a result of weather. With this change, the first potential opportunity to launch is no earlier than Sunday, Feb. 8.",
                 link: "https://www.nasa.gov/blogs/missions/2026/01/30/nasa-updates-artemis-ii-wet-dress-rehearsal-launch-opportunities/"
             },
             {
+                date: "2026-02-03",
                 source: "NASA Blogs Artemis",
                 title: "NASA Conducts Artemis II Fuel Test, Eyes March for Launch Opportunity",
                 text: "NASA concluded a wet dress rehearsal for the agency’s Artemis II test flight early Tuesday morning, successfully loading cryogenic propellant into the SLS (Space Launch System) tanks, sending a team out to the launch pad to closeout Orion, and safely draining the rocket. The wet dress rehearsal was a prelaunch test to fuel the rocket, designed to identify any issues and resolve them before attempting a launch.",
                 link: "https://www.nasa.gov/blogs/missions/2026/02/03/nasa-conducts-artemis-ii-fuel-test-eyes-march-for-launch-opportunity/"
             },
             {
+                date: "2026-02-13",
                 source: "NASA Blogs Missions",
                 title: "Following Confidence Test, NASA Continues Artemis II Data Review",
                 text: "As part of robustly testing the vehicle prior to flight, NASA engineers are reviewing data after a confidence test Feb. 12, in which operators partially filled the SLS (Space Launch System) core stage liquid hydrogen tank to assess newly replaced seals in an area used to fill the rocket with propellant.",
                 link: "https://www.nasa.gov/blogs/missions/2026/02/13/following-confidence-test-nasa-continues-artemis-ii-data-review/"
             },
             {
+                date: "2026-02-23",
                 source: "BBC Sky at Night",
                 title: "NASA launch dates for Artemis II",
                 text: "Potential launch dates for the Artemis II mission to the Moon",
                 link: "https://www.skyatnightmagazine.com/news/when-will-artemis-ii-launch"
             },
              {
+                date: "2026-02-26",
                 source: "NASA Missions",
                 title: "Teams Begin Artemis II Repairs in Vehicle Assembly Building",
                 text: "Once NASA’s Artemis II SLS (Space Launch System) rocket and Orion spacecraft arrived at the Vehicle Assembly Building (VAB) Feb. 25, technicians immediately began addressing why the flow of helium to the SLS upper stage was interrupted as engineers were reconfiguring the rocket following a successful wet dress rehearsal on Feb. 21",
                 link: "https://www.nasa.gov/blogs/missions/2026/02/26/teams-begin-artemis-ii-repairs-in-vehicle-assembly-building/"
             },
             {
+                date: "2026-03-03",
                 source: "NASA Blogs Missions",
                 title: "NASA Repairs Upper Stage Helium Flow, Preps Continue Ahead of Rollout",
                 text: "With NASA’s Artemis II SLS (Space Launch System) rocket and Orion spacecraft in the Vehicle Assembly Building at the agency’s Kennedy Space Center in Florida, technicians have accessed the launch vehicle stage adapter to inspect components that prevented helium from flowing to the upper stage after a Feb. 21 wet dress rehearsal",
                 link: "https://www.nasa.gov/blogs/missions/2026/03/03/nasa-repairs-upper-stage-helium-flow-preps-continue-ahead-of-rollout/"
             },
             {
+                date: "2026-03-20",
                 source: "NASA Blogs Artemis",
                 title: "NASA’s Artemis II Rocket Arrives at Launch Pad 39B",
                 text: "At 11:21 a.m. EDT on Friday, March 20, NASA’s Artemis II SLS (Space Launch System) rocket and Orion spacecraft arrived at Launch Pad 39B after an 11-hour journey from the Vehicle Assembly Building at the agency’s Kennedy Space Center in Florida",
                 link: "https://www.nasa.gov/blogs/missions/2026/03/20/nasas-artemis-ii-rocket-arrives-at-launch-pad-39b/"
             }
         ];
+
+        const VIEW_MODE_DATE_DESC = 'date_desc';
+        const VIEW_MODE_LUCKY = 'lucky';
+        const NEWS_PAGE_SIZE = 6;
+
+        const appState = {
+            viewMode: VIEW_MODE_DATE_DESC,
+            pageIndex: 0,
+            pageSize: NEWS_PAGE_SIZE,
+            luckyUsedIds: new Set()
+        };
+
+        const normalizedNewsPool = newsPool.map((item, index) => {
+            const dateValue = Number.isNaN(Date.parse(item.date)) ? -Infinity : Date.parse(item.date);
+            return {
+                ...item,
+                id: index,
+                dateValue
+            };
+        });
 
         function parseLaunchDate(str) {
             const parts = str.split(':');
@@ -615,7 +735,7 @@
             document.getElementById('seconds').innerText = String(s).padStart(2, '0');
         }
 
-        // REFRESH LOGIC: PHOTO & NEWS
+        // REFRESH LOGIC: HERO PHOTO
         function applyRandomResources() {
             // 1. Random Hero Image
             const randomPhoto = photoPool[Math.floor(Math.random() * photoPool.length)];
@@ -627,24 +747,149 @@
                 Hero Photo: <a href="${randomPhoto.link}" target="_blank">${randomPhoto.desc}</a> 
                 via <a href="https://images.nasa.gov/" target="_blank">NASA Images</a>
             `;
+        }
 
-            // 2. Random News Selection (6 items)
-            const shuffledNews = [...newsPool].sort(() => 0.5 - Math.random());
-            const selectedNews = shuffledNews.slice(0, 6);
-            
+        function getDateSortedNews() {
+            return [...normalizedNewsPool].sort((a, b) => b.dateValue - a.dateValue);
+        }
+
+        function getLuckyItems() {
+            const pageSize = appState.pageSize;
+            let available = normalizedNewsPool.filter(item => !appState.luckyUsedIds.has(item.id));
+
+            if (available.length < pageSize) {
+                appState.luckyUsedIds.clear();
+                available = [...normalizedNewsPool];
+            }
+
+            const shuffled = [...available];
+            for (let i = shuffled.length - 1; i > 0; i -= 1) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+
+            const selected = shuffled.slice(0, Math.min(pageSize, shuffled.length));
+            selected.forEach(item => appState.luckyUsedIds.add(item.id));
+            return selected;
+        }
+
+        function formatNewsDate(dateStr) {
+            const dateObj = new Date(dateStr);
+            if (Number.isNaN(dateObj.getTime())) {
+                return 'Date unavailable';
+            }
+
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = months[dateObj.getMonth()];
+            const year = dateObj.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        function renderNewsCards(items) {
             const grid = document.getElementById('news-grid');
-            grid.innerHTML = ''; 
-            selectedNews.forEach((item, index) => {
+            grid.innerHTML = '';
+
+            items.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.style.animationDelay = `${index * 0.1}s`;
                 card.innerHTML = `
                     <span class="source">${item.source}</span>
+                    <span class="news-date">${formatNewsDate(item.date)}</span>
                     <h3>${item.title}</h3>
                     <p>${item.text}</p>
                     <a href="${item.link}" target="_blank" class="btn-link">View Source</a>
                 `;
                 grid.appendChild(card);
+            });
+        }
+
+        function updateNewsControls(itemsLength, totalLength) {
+            const btnDateDesc = document.getElementById('btn-date-desc');
+            const btnLucky = document.getElementById('btn-feeling-lucky');
+            const btnPrev = document.getElementById('btn-prev-news');
+            const btnNext = document.getElementById('btn-next-news');
+            const status = document.getElementById('news-status');
+
+            const isDateMode = appState.viewMode === VIEW_MODE_DATE_DESC;
+            btnDateDesc.classList.toggle('active', isDateMode);
+            btnLucky.classList.toggle('active', !isDateMode);
+
+            if (!isDateMode) {
+                btnPrev.disabled = true;
+                btnNext.disabled = true;
+                status.textContent = `Mode: Feeling Lucky | Showing ${itemsLength} random update${itemsLength === 1 ? '' : 's'}`;
+                return;
+            }
+
+            const pageStart = appState.pageIndex * appState.pageSize;
+            const from = totalLength === 0 ? 0 : pageStart + 1;
+            const to = Math.min(pageStart + itemsLength, totalLength);
+            const maxPageIndex = Math.max(Math.ceil(totalLength / appState.pageSize) - 1, 0);
+
+            btnPrev.disabled = appState.pageIndex === 0;
+            btnNext.disabled = appState.pageIndex >= maxPageIndex;
+            status.textContent = `Mode: Date DESC | Showing ${from}-${to} of ${totalLength}`;
+        }
+
+        function renderNews() {
+            if (appState.viewMode === VIEW_MODE_LUCKY) {
+                const luckyItems = getLuckyItems();
+                renderNewsCards(luckyItems);
+                updateNewsControls(luckyItems.length, normalizedNewsPool.length);
+                return;
+            }
+
+            const sorted = getDateSortedNews();
+            const start = appState.pageIndex * appState.pageSize;
+            const items = sorted.slice(start, start + appState.pageSize);
+            renderNewsCards(items);
+            updateNewsControls(items.length, sorted.length);
+        }
+
+        function bindNewsControls() {
+            const btnDateDesc = document.getElementById('btn-date-desc');
+            const btnLucky = document.getElementById('btn-feeling-lucky');
+            const btnPrev = document.getElementById('btn-prev-news');
+            const btnNext = document.getElementById('btn-next-news');
+
+            btnDateDesc.addEventListener('click', () => {
+                applyRandomResources();
+                appState.viewMode = VIEW_MODE_DATE_DESC;
+                appState.pageIndex = 0;
+                renderNews();
+            });
+
+            btnLucky.addEventListener('click', () => {
+                applyRandomResources();
+                appState.viewMode = VIEW_MODE_LUCKY;
+                renderNews();
+            });
+
+            btnPrev.addEventListener('click', () => {
+                if (appState.viewMode !== VIEW_MODE_DATE_DESC || appState.pageIndex === 0) {
+                    return;
+                }
+                applyRandomResources();
+                appState.pageIndex -= 1;
+                renderNews();
+            });
+
+            btnNext.addEventListener('click', () => {
+                if (appState.viewMode !== VIEW_MODE_DATE_DESC) {
+                    return;
+                }
+
+                const total = normalizedNewsPool.length;
+                const maxPageIndex = Math.max(Math.ceil(total / appState.pageSize) - 1, 0);
+                if (appState.pageIndex >= maxPageIndex) {
+                    return;
+                }
+
+                applyRandomResources();
+                appState.pageIndex += 1;
+                renderNews();
             });
         }
 
@@ -692,6 +937,8 @@
         // Init
         window.onload = () => {
             applyRandomResources();
+            bindNewsControls();
+            renderNews();
             populateCityList();
             setInterval(updateCountdown, 1000);
             updateCountdown();
