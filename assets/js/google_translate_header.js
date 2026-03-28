@@ -2,6 +2,7 @@
     'use strict';
 
     var initialized = false;
+    var widgetInitialized = false;
 
     function setStatus(root, message) {
         var statusEl = root.querySelector('.translate-status');
@@ -19,12 +20,16 @@
         });
     }
 
+    function getTranslateCombo() {
+        return document.querySelector('.goog-te-combo') || document.querySelector('select.goog-te-combo');
+    }
+
     function applyLanguage(root, storageKey, langCode) {
-        var maxAttempts = 50;
+        var maxAttempts = 150;
         var attempts = 0;
 
         var poll = setInterval(function () {
-            var combo = document.querySelector('.goog-te-combo');
+            var combo = getTranslateCombo();
             if (combo) {
                 combo.value = langCode;
                 combo.dispatchEvent(new Event('change'));
@@ -38,12 +43,16 @@
             attempts += 1;
             if (attempts >= maxAttempts) {
                 clearInterval(poll);
-                setStatus(root, 'Translator is still loading...');
+                setStatus(root, 'Translator unavailable or blocked.');
             }
         }, 100);
     }
 
     function initTranslateWidget(root, pageLanguage, includedLanguages) {
+        if (widgetInitialized) {
+            return true;
+        }
+
         if (!window.google || !window.google.translate) {
             setStatus(root, 'Translator unavailable.');
             return false;
@@ -59,6 +68,7 @@
             'google_translate_element'
         );
 
+        widgetInitialized = true;
         return true;
     }
 
@@ -70,6 +80,13 @@
                 if (!langCode) {
                     return;
                 }
+
+                if (!getTranslateCombo()) {
+                    var pageLanguage = root.getAttribute('data-page-language') || 'en';
+                    var includedLanguages = root.getAttribute('data-included-languages') || 'en,es,fr';
+                    initTranslateWidget(root, pageLanguage, includedLanguages);
+                }
+
                 applyLanguage(root, storageKey, langCode);
             });
         });

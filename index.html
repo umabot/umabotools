@@ -93,11 +93,19 @@
         }
 
         .translate-hidden-widget,
-        #google_translate_element,
         .skiptranslate.goog-te-gadget,
         .goog-te-banner-frame.skiptranslate {
-            display: none !important;
-            visibility: hidden !important;
+            position: absolute !important;
+            left: -9999px !important;
+            width: 1px !important;
+            height: 1px !important;
+            overflow: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        #google_translate_element {
+            min-height: 1px;
         }
 
         body {
