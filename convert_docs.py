@@ -10,8 +10,6 @@ OUTPUT_DIR = './dist'
 SNIPPETS_DIR = './assets/snippets'
 INDEX_MD = './index.md'
 INDEX_HTML = './index.html'
-TRANSLATE_SCRIPT_SOURCE = './assets/js/google_translate_header.js'
-TRANSLATE_SCRIPT_DIST = './dist/assets/js/google_translate_header.js'
 DIST_INDEX_HTML = './dist/index.html'
 
 # Landing page template (for index.html)
@@ -55,83 +53,6 @@ LANDING_TEMPLATE = """
             height: 38px;
             width: auto;
             margin-bottom: 20px;
-        }}
-
-        /* Translation header */
-        .translate-header {{
-            max-width: 900px;
-            margin: 0 auto 12px;
-            padding: 10px 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background-color: #fafafa;
-        }}
-
-        .translate-header-inner {{
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }}
-
-        .translate-label {{
-            font-size: 14px;
-            font-weight: 600;
-            color: #333333;
-            margin-right: 4px;
-        }}
-
-        .translate-btn {{
-            border: 1px solid #d0d0d0;
-            background-color: #ffffff;
-            color: #333333;
-            border-radius: 999px;
-            padding: 4px 12px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }}
-
-        .translate-btn:hover {{
-            border-color: #b5b5b5;
-            background-color: #f5f5f5;
-        }}
-
-        .translate-btn.active {{
-            border-color: #0066cc;
-            background-color: #0066cc;
-            color: #ffffff;
-        }}
-
-        .translate-status {{
-            font-size: 12px;
-            color: #666666;
-            margin-left: 8px;
-        }}
-
-        .translate-status.error {{
-            color: #b42318;
-            font-weight: 600;
-        }}
-
-        .translate-hidden-widget,
-        .skiptranslate.goog-te-gadget,
-        .goog-te-banner-frame.skiptranslate {{
-            position: absolute !important;
-            left: -9999px !important;
-            width: 1px !important;
-            height: 1px !important;
-            overflow: hidden !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }}
-
-        #google_translate_element {{
-            min-height: 1px;
-        }}
-
-        body {{
-            top: 0 !important;
         }}
         
         /* Main container */
@@ -234,11 +155,6 @@ LANDING_TEMPLATE = """
             body {{
                 padding: 10px;
             }}
-
-            .translate-header {{
-                padding: 10px;
-                margin-bottom: 10px;
-            }}
             
             .container {{
                 padding: 10px;
@@ -265,11 +181,6 @@ LANDING_TEMPLATE = """
             h1 {{
                 font-size: 22px;
             }}
-
-            .translate-label {{
-                width: 100%;
-                margin-right: 0;
-            }}
             
             h2 {{
                 font-size: 18px;
@@ -286,21 +197,9 @@ LANDING_TEMPLATE = """
     </style>
 </head>
 <body>
-    <div class="translate-header" data-translate-root data-storage-key="umabot_lang_pref" data-page-language="en" data-included-languages="en,es,fr" data-translate-debug="false" data-google-translate-src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
-        <div class="translate-header-inner">
-            <span class="translate-label">Language:</span>
-            <button type="button" class="translate-btn" data-lang="en">EN</button>
-            <button type="button" class="translate-btn" data-lang="es">ES</button>
-            <button type="button" class="translate-btn" data-lang="fr">FR</button>
-            <span class="translate-status" aria-live="polite"></span>
-        </div>
-        <div id="google_translate_element" class="translate-hidden-widget" aria-hidden="true"></div>
-    </div>
-    <noscript><p class="translate-status error">Translation requires JavaScript enabled.</p></noscript>
     <div class="container">
         {content}
     </div>
-    <script src="{translate_script_src}"></script>
 </body>
 </html>
 """
@@ -390,96 +289,9 @@ DOCS_TEMPLATE = """
             border-bottom: 1px solid #e0e0e0;
         }}
 
-        /* Translation header */
-        .translate-header {{
-            max-width: 900px;
-            margin: 0 auto 12px;
-            padding: 10px 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background-color: #fafafa;
-        }}
-
-        .translate-header-inner {{
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }}
-
-        .translate-label {{
-            font-size: 14px;
-            font-weight: 600;
-            color: #333333;
-            margin-right: 4px;
-        }}
-
-        .translate-btn {{
-            border: 1px solid #d0d0d0;
-            background-color: #ffffff;
-            color: #333333;
-            border-radius: 999px;
-            padding: 4px 12px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }}
-
-        .translate-btn:hover {{
-            border-color: #b5b5b5;
-            background-color: #f5f5f5;
-        }}
-
-        .translate-btn.active {{
-            border-color: #0066cc;
-            background-color: #0066cc;
-            color: #ffffff;
-        }}
-
-        .translate-status {{
-            font-size: 12px;
-            color: #666666;
-            margin-left: 8px;
-        }}
-
-        .translate-status.error {{
-            color: #b42318;
-            font-weight: 600;
-        }}
-
-        .translate-hidden-widget,
-        .skiptranslate.goog-te-gadget,
-        .goog-te-banner-frame.skiptranslate {{
-            position: absolute !important;
-            left: -9999px !important;
-            width: 1px !important;
-            height: 1px !important;
-            overflow: hidden !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }}
-
-        #google_translate_element {{
-            min-height: 1px;
-        }}
-
-        body {{
-            top: 0 !important;
-        }}
-
         @media (max-width: 768px) {{
             body {{
                 padding: 10px;
-            }}
-
-            .translate-header {{
-                padding: 10px;
-                margin-bottom: 10px;
-            }}
-
-            .translate-label {{
-                width: 100%;
-                margin-right: 0;
             }}
 
             .markdown-body {{
@@ -520,19 +332,7 @@ DOCS_TEMPLATE = """
     </style>
 </head>
 <body class="markdown-body">
-    <div class="translate-header" data-translate-root data-storage-key="umabot_lang_pref" data-page-language="en" data-included-languages="en,es,fr" data-translate-debug="false" data-google-translate-src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
-        <div class="translate-header-inner">
-            <span class="translate-label">Language:</span>
-            <button type="button" class="translate-btn" data-lang="en">EN</button>
-            <button type="button" class="translate-btn" data-lang="es">ES</button>
-            <button type="button" class="translate-btn" data-lang="fr">FR</button>
-            <span class="translate-status" aria-live="polite"></span>
-        </div>
-        <div id="google_translate_element" class="translate-hidden-widget" aria-hidden="true"></div>
-    </div>
-    <noscript><p class="translate-status error">Translation requires JavaScript enabled.</p></noscript>
     {content}
-    <script src="{translate_script_src}"></script>
 </body>
 </html>
 """
@@ -549,17 +349,7 @@ def compute_relative_url(from_file, to_file):
 
 
 def ensure_dist_support_files(index_converted):
-    """Copy shared translation script and landing page into dist for self-contained docs."""
-    translate_source = Path(TRANSLATE_SCRIPT_SOURCE)
-    translate_target = Path(TRANSLATE_SCRIPT_DIST)
-    translate_target.parent.mkdir(parents=True, exist_ok=True)
-
-    if translate_source.exists():
-        shutil.copy2(translate_source, translate_target)
-        print(f"✓ Copied translation helper to {translate_target}")
-    else:
-        print(f"⊘ Translation helper not found at {translate_source}")
-
+    """Copy landing page into dist for self-contained docs."""
     if index_converted and Path(INDEX_HTML).exists():
         dist_index_target = Path(DIST_INDEX_HTML)
         dist_index_target.parent.mkdir(parents=True, exist_ok=True)
@@ -617,13 +407,10 @@ def convert_index():
         html_content
     )
     
-    translate_script_src = compute_relative_url(Path(INDEX_HTML), Path(TRANSLATE_SCRIPT_SOURCE))
-
     # Apply landing page template
     final_html = LANDING_TEMPLATE.format(
         title=metadata.get('title', 'Umabot Tools - Landing Page'),
-        content=html_content,
-        translate_script_src=translate_script_src
+        content=html_content
     )
     
     # Write to root
@@ -666,9 +453,7 @@ def convert_docs():
 
         # Resolve per-page links inside dist so docs remain self-contained.
         dist_index_target = Path(DIST_INDEX_HTML)
-        translate_script_target = Path(TRANSLATE_SCRIPT_DIST)
         home_link = compute_relative_url(output_file, dist_index_target)
-        translate_script_src = compute_relative_url(output_file, translate_script_target)
 
         resolved_header_snippet = header_snippet.replace('../../index.html', home_link)
         
@@ -684,8 +469,7 @@ def convert_docs():
         # Apply documentation template
         final_html = DOCS_TEMPLATE.format(
             title=metadata.get('title', path.stem.replace('_', ' ').title()),
-            content=html_content,
-            translate_script_src=translate_script_src
+            content=html_content
         )
         
         with open(output_file, 'w', encoding='utf-8') as f:
