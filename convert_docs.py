@@ -52,6 +52,70 @@ LANDING_TEMPLATE = """
             width: auto;
             margin-bottom: 20px;
         }}
+
+        /* Translation header */
+        .translate-header {{
+            max-width: 900px;
+            margin: 0 auto 12px;
+            padding: 10px 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }}
+
+        .translate-header-inner {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }}
+
+        .translate-label {{
+            font-size: 14px;
+            font-weight: 600;
+            color: #333333;
+            margin-right: 4px;
+        }}
+
+        .translate-btn {{
+            border: 1px solid #d0d0d0;
+            background-color: #ffffff;
+            color: #333333;
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }}
+
+        .translate-btn:hover {{
+            border-color: #b5b5b5;
+            background-color: #f5f5f5;
+        }}
+
+        .translate-btn.active {{
+            border-color: #0066cc;
+            background-color: #0066cc;
+            color: #ffffff;
+        }}
+
+        .translate-status {{
+            font-size: 12px;
+            color: #666666;
+            margin-left: 8px;
+        }}
+
+        .translate-hidden-widget,
+        #google_translate_element,
+        .skiptranslate.goog-te-gadget,
+        .goog-te-banner-frame.skiptranslate {{
+            display: none !important;
+            visibility: hidden !important;
+        }}
+
+        body {{
+            top: 0 !important;
+        }}
         
         /* Main container */
         .container {{
@@ -153,6 +217,11 @@ LANDING_TEMPLATE = """
             body {{
                 padding: 10px;
             }}
+
+            .translate-header {{
+                padding: 10px;
+                margin-bottom: 10px;
+            }}
             
             .container {{
                 padding: 10px;
@@ -179,6 +248,11 @@ LANDING_TEMPLATE = """
             h1 {{
                 font-size: 22px;
             }}
+
+            .translate-label {{
+                width: 100%;
+                margin-right: 0;
+            }}
             
             h2 {{
                 font-size: 18px;
@@ -195,9 +269,21 @@ LANDING_TEMPLATE = """
     </style>
 </head>
 <body>
+    <div class="translate-header" data-translate-root data-storage-key="umabot_lang_pref" data-page-language="en" data-included-languages="en,es,fr">
+        <div class="translate-header-inner">
+            <span class="translate-label">Language:</span>
+            <button type="button" class="translate-btn" data-lang="en">EN</button>
+            <button type="button" class="translate-btn" data-lang="es">ES</button>
+            <button type="button" class="translate-btn" data-lang="fr">FR</button>
+            <span class="translate-status" aria-live="polite"></span>
+        </div>
+        <div id="google_translate_element" class="translate-hidden-widget" aria-hidden="true"></div>
+    </div>
     <div class="container">
         {content}
     </div>
+    <script src="./assets/js/google_translate_header.js"></script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
 """
@@ -287,10 +373,85 @@ DOCS_TEMPLATE = """
             border-bottom: 1px solid #e0e0e0;
         }}
 
+        /* Translation header */
+        .translate-header {{
+            max-width: 900px;
+            margin: 0 auto 12px;
+            padding: 10px 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }}
+
+        .translate-header-inner {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }}
+
+        .translate-label {{
+            font-size: 14px;
+            font-weight: 600;
+            color: #333333;
+            margin-right: 4px;
+        }}
+
+        .translate-btn {{
+            border: 1px solid #d0d0d0;
+            background-color: #ffffff;
+            color: #333333;
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }}
+
+        .translate-btn:hover {{
+            border-color: #b5b5b5;
+            background-color: #f5f5f5;
+        }}
+
+        .translate-btn.active {{
+            border-color: #0066cc;
+            background-color: #0066cc;
+            color: #ffffff;
+        }}
+
+        .translate-status {{
+            font-size: 12px;
+            color: #666666;
+            margin-left: 8px;
+        }}
+
+        .translate-hidden-widget,
+        #google_translate_element,
+        .skiptranslate.goog-te-gadget,
+        .goog-te-banner-frame.skiptranslate {{
+            display: none !important;
+            visibility: hidden !important;
+        }}
+
+        body {{
+            top: 0 !important;
+        }}
+
         @media (max-width: 768px) {{
             body {{
                 padding: 10px;
             }}
+
+            .translate-header {{
+                padding: 10px;
+                margin-bottom: 10px;
+            }}
+
+            .translate-label {{
+                width: 100%;
+                margin-right: 0;
+            }}
+
             .markdown-body {{
                 padding: 10px;
             }}
@@ -329,7 +490,19 @@ DOCS_TEMPLATE = """
     </style>
 </head>
 <body class="markdown-body">
+    <div class="translate-header" data-translate-root data-storage-key="umabot_lang_pref" data-page-language="en" data-included-languages="en,es,fr">
+        <div class="translate-header-inner">
+            <span class="translate-label">Language:</span>
+            <button type="button" class="translate-btn" data-lang="en">EN</button>
+            <button type="button" class="translate-btn" data-lang="es">ES</button>
+            <button type="button" class="translate-btn" data-lang="fr">FR</button>
+            <span class="translate-status" aria-live="polite"></span>
+        </div>
+        <div id="google_translate_element" class="translate-hidden-widget" aria-hidden="true"></div>
+    </div>
     {content}
+    <script src="../../assets/js/google_translate_header.js"></script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
 """
