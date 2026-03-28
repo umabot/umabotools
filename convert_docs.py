@@ -109,6 +109,11 @@ LANDING_TEMPLATE = """
             margin-left: 8px;
         }}
 
+        .translate-status.error {{
+            color: #b42318;
+            font-weight: 600;
+        }}
+
         .translate-hidden-widget,
         .skiptranslate.goog-te-gadget,
         .goog-te-banner-frame.skiptranslate {{
@@ -281,7 +286,7 @@ LANDING_TEMPLATE = """
     </style>
 </head>
 <body>
-    <div class="translate-header" data-translate-root data-storage-key="umabot_lang_pref" data-page-language="en" data-included-languages="en,es,fr">
+    <div class="translate-header" data-translate-root data-storage-key="umabot_lang_pref" data-page-language="en" data-included-languages="en,es,fr" data-translate-debug="false" data-google-translate-src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
         <div class="translate-header-inner">
             <span class="translate-label">Language:</span>
             <button type="button" class="translate-btn" data-lang="en">EN</button>
@@ -291,11 +296,11 @@ LANDING_TEMPLATE = """
         </div>
         <div id="google_translate_element" class="translate-hidden-widget" aria-hidden="true"></div>
     </div>
+    <noscript><p class="translate-status error">Translation requires JavaScript enabled.</p></noscript>
     <div class="container">
         {content}
     </div>
-    <script src="./assets/js/google_translate_header.js"></script>
-    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script src="{translate_script_src}"></script>
 </body>
 </html>
 """
@@ -437,6 +442,11 @@ DOCS_TEMPLATE = """
             margin-left: 8px;
         }}
 
+        .translate-status.error {{
+            color: #b42318;
+            font-weight: 600;
+        }}
+
         .translate-hidden-widget,
         .skiptranslate.goog-te-gadget,
         .goog-te-banner-frame.skiptranslate {{
@@ -510,7 +520,7 @@ DOCS_TEMPLATE = """
     </style>
 </head>
 <body class="markdown-body">
-    <div class="translate-header" data-translate-root data-storage-key="umabot_lang_pref" data-page-language="en" data-included-languages="en,es,fr">
+    <div class="translate-header" data-translate-root data-storage-key="umabot_lang_pref" data-page-language="en" data-included-languages="en,es,fr" data-translate-debug="false" data-google-translate-src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
         <div class="translate-header-inner">
             <span class="translate-label">Language:</span>
             <button type="button" class="translate-btn" data-lang="en">EN</button>
@@ -520,9 +530,9 @@ DOCS_TEMPLATE = """
         </div>
         <div id="google_translate_element" class="translate-hidden-widget" aria-hidden="true"></div>
     </div>
+    <noscript><p class="translate-status error">Translation requires JavaScript enabled.</p></noscript>
     {content}
     <script src="{translate_script_src}"></script>
-    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
 """
@@ -607,10 +617,13 @@ def convert_index():
         html_content
     )
     
+    translate_script_src = compute_relative_url(Path(INDEX_HTML), Path(TRANSLATE_SCRIPT_SOURCE))
+
     # Apply landing page template
     final_html = LANDING_TEMPLATE.format(
         title=metadata.get('title', 'Umabot Tools - Landing Page'),
-        content=html_content
+        content=html_content,
+        translate_script_src=translate_script_src
     )
     
     # Write to root

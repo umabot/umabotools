@@ -92,6 +92,11 @@
             margin-left: 8px;
         }
 
+        .translate-status.error {
+            color: #b42318;
+            font-weight: 600;
+        }
+
         .translate-hidden-widget,
         .skiptranslate.goog-te-gadget,
         .goog-te-banner-frame.skiptranslate {
@@ -264,7 +269,7 @@
     </style>
 </head>
 <body>
-    <div class="translate-header" data-translate-root data-storage-key="umabot_lang_pref" data-page-language="en" data-included-languages="en,es,fr">
+    <div class="translate-header" data-translate-root data-storage-key="umabot_lang_pref" data-page-language="en" data-included-languages="en,es,fr" data-translate-debug="false" data-google-translate-src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
         <div class="translate-header-inner">
             <span class="translate-label">Language:</span>
             <button type="button" class="translate-btn" data-lang="en">EN</button>
@@ -274,6 +279,7 @@
         </div>
         <div id="google_translate_element" class="translate-hidden-widget" aria-hidden="true"></div>
     </div>
+    <noscript><p class="translate-status error">Translation requires JavaScript enabled.</p></noscript>
     <div class="container">
         <p><img src="assets/images/logo.png" class="logo" alt="InnovUmabot Logo" /></p>
 
@@ -353,7 +359,6 @@
 <p><em>This tool was vibe-coded with AI with strict human supervision.</em></p>
 
     </div>
-    <script src="./assets/js/google_translate_header.js"></script>
-    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script src="assets/js/google_translate_header.js"></script>
 </body>
 </html>
