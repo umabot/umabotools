@@ -8,13 +8,13 @@ Objective: fetch dynamic data from a source like Google Sheets and render it on 
 
 - [Club Ciclista landing page demo](https://innovumabot.com/prueba-club-ciclista/)
 - [Club Ciclista app source](../../clubciclista.html)
-- [Club Ciclista documentation](../clubciclista/README.md)
+- [Club Ciclista documentation](../dist/clubciclista/README.md)
 
 ## Code Files Used in This Integration
 
-- JavaScript loader: [elementor_routes.js](../../tools/wordpress/elementor_routes_csv.js)
-- Elementor widget template: [elementor_widget.html](../../tools/wordpress/elementor_widget_html.html)
-- Setup reference: [ELEMENTOR_SETUP.md](../../tools/wordpress/ELEMENTOR_SETUP.md)
+- JavaScript loader: [elementor_routes.js](https://github.com/umabot/umabotools/blob/main/tools/wordpress/elementor_routes_csv.js)
+- Elementor widget template: [elementor_widget.html](https://github.com/umabot/umabotools/blob/main/tools/wordpress/elementor_widget_html.html)
+- Setup reference: [ELEMENTOR_SETUP.md](https://github.com/umabot/umabotools/blob/main/tools/wordpress/ELEMENTOR_SETUP.md)
 
 ## 1. Prepare Google Sheets Data
 
