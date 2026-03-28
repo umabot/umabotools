@@ -20,6 +20,7 @@ Part of the inspiration comes from tools available from web pages, or [1-click t
 | [GCal Participant List Cleaner](gcal_converter.html) | Creating a clean csv list of participants copying from Google Calendar participant lists. [See more](dist/gcal_converter/README.html) |
 | [Before & After Studio](image_comparison.html) | Interactive slider to compare two images side-by-side. Ideal for viewing how a picture changed after modifications using photo editing tools or AI/LLMs. [See more](dist/image_comparison/README.html) |
 | [Google Translate Test Page](test_translate.html) | Demonstration of programmatic Google Translate integration with custom UI. Features language switching without the native widget, localStorage persistence, and privacy-first design. [See more](dist/test_translate/README.html) |
+| [Single Landing Page](clubciclista.html) | A complete landing page template for a business, association, or branding page — illustrated with a cycling club example. Reuses the language-switching pattern from the Google Translate Test Page, and includes a section where upcoming routes are rendered dynamically from a Google Spreadsheet used as a lightweight database. [See more](dist/clubciclista/README.html) |
 | [mdproperties - Python CLI Tool](https://github.com/umabot/umabotools/tree/main/tools/mdproperties) | Command-line tool to manage YAML frontmatter in Obsidian markdown files. Read, add, modify, and delete properties with smart list handling and PARA system integration. [See more](dist/mdproperties/README.html) |
 
 ---

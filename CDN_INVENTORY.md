@@ -21,7 +21,7 @@
 
 ### 1. Tailwind CSS
 
-**Version:** 3.4.1  
+**Version:** 2.2.19  
 **Purpose:** Utility-first CSS framework  
 **CDN Provider:** jsDelivr (Recommended)  
 **Usage:** 4 files
@@ -30,8 +30,8 @@
 ```html
 <link 
     rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css"
-    integrity="sha384-wAkE1abywdsF0VP/+RDLxHADng231vt6gsqcjBzQFUoAQNkuN63+cJ4XDiE7LVjx"
+    href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+    integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg"
     crossorigin="anonymous">
 ```
 
@@ -44,7 +44,7 @@
 
 **Security Notes:**
 - ✅ Using prebuilt CSS file (NOT the Play CDN `cdn.tailwindcss.com`)
-- ✅ Version pinned to 3.4.1
+- ✅ Version pinned to 2.2.19
 - ✅ SRI hash validated
 - ✅ CORS protection enabled
 
@@ -54,7 +54,7 @@
 
 **Generate SRI Hash:**
 ```bash
-curl -s "https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" | openssl dgst -sha384 -binary | openssl base64 -A
+curl -s "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" | openssl dgst -sha384 -binary | openssl base64 -A
 ```
 
 ---
