@@ -2,6 +2,7 @@ import os
 import markdown2
 from pathlib import Path
 import re
+import shutil
 
 # Configuration
 DOCS_DIR = './docs'
@@ -9,6 +10,9 @@ OUTPUT_DIR = './dist'
 SNIPPETS_DIR = './assets/snippets'
 INDEX_MD = './index.md'
 INDEX_HTML = './index.html'
+TRANSLATE_SCRIPT_SOURCE = './assets/js/google_translate_header.js'
+TRANSLATE_SCRIPT_DIST = './dist/assets/js/google_translate_header.js'
+DIST_INDEX_HTML = './dist/index.html'
 
 # Landing page template (for index.html)
 LANDING_TEMPLATE = """
@@ -517,11 +521,40 @@ DOCS_TEMPLATE = """
         <div id="google_translate_element" class="translate-hidden-widget" aria-hidden="true"></div>
     </div>
     {content}
-    <script src="../../assets/js/google_translate_header.js"></script>
+    <script src="{translate_script_src}"></script>
     <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
 """
+
+
+def to_posix_path(path_obj):
+    """Return a path using forward slashes for HTML links."""
+    return str(path_obj).replace(os.sep, '/')
+
+
+def compute_relative_url(from_file, to_file):
+    """Compute relative URL from one file path to another."""
+    return to_posix_path(Path(os.path.relpath(to_file, start=from_file.parent)))
+
+
+def ensure_dist_support_files(index_converted):
+    """Copy shared translation script and landing page into dist for self-contained docs."""
+    translate_source = Path(TRANSLATE_SCRIPT_SOURCE)
+    translate_target = Path(TRANSLATE_SCRIPT_DIST)
+    translate_target.parent.mkdir(parents=True, exist_ok=True)
+
+    if translate_source.exists():
+        shutil.copy2(translate_source, translate_target)
+        print(f"✓ Copied translation helper to {translate_target}")
+    else:
+        print(f"⊘ Translation helper not found at {translate_source}")
+
+    if index_converted and Path(INDEX_HTML).exists():
+        dist_index_target = Path(DIST_INDEX_HTML)
+        dist_index_target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(Path(INDEX_HTML), dist_index_target)
+        print(f"✓ Copied landing page to {dist_index_target}")
 
 def load_snippet(snippet_name):
     """Load a markdown snippet from the snippets directory."""
@@ -614,23 +647,32 @@ def convert_docs():
         
         print(f"Converting {path}...")
         
-        # Inject header and footer snippets
-        full_markdown = f"{header_snippet}\n\n{body}\n\n{footer_snippet}"
-            
-        # Convert to HTML
-        html_content = markdown2.markdown(full_markdown, extras=["fenced-code-blocks", "tables", "header-ids"])
-        
         # Prepare file paths
         relative_path = path.relative_to(DOCS_DIR)
         output_file = Path(OUTPUT_DIR) / relative_path.with_suffix('.html')
+
+        # Resolve per-page links inside dist so docs remain self-contained.
+        dist_index_target = Path(DIST_INDEX_HTML)
+        translate_script_target = Path(TRANSLATE_SCRIPT_DIST)
+        home_link = compute_relative_url(output_file, dist_index_target)
+        translate_script_src = compute_relative_url(output_file, translate_script_target)
+
+        resolved_header_snippet = header_snippet.replace('../../index.html', home_link)
         
         # Ensure subdirectories exist
         output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # Inject header and footer snippets
+        full_markdown = f"{resolved_header_snippet}\n\n{body}\n\n{footer_snippet}"
+
+        # Convert to HTML
+        html_content = markdown2.markdown(full_markdown, extras=["fenced-code-blocks", "tables", "header-ids"])
         
         # Apply documentation template
         final_html = DOCS_TEMPLATE.format(
             title=metadata.get('title', path.stem.replace('_', ' ').title()),
-            content=html_content
+            content=html_content,
+            translate_script_src=translate_script_src
         )
         
         with open(output_file, 'w', encoding='utf-8') as f:
@@ -652,6 +694,9 @@ def main():
     
     # Convert index.md to index.html
     index_converted = convert_index()
+
+    # Copy root-level support files into dist for self-contained docs.
+    ensure_dist_support_files(index_converted)
     
     print()
     

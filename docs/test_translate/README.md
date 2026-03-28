@@ -82,6 +82,7 @@ function checkScriptLoad() {
 ```
 
 Displays a user-friendly error message if:
+
 - The Google Translate script fails to load
 - Browser security policies block external scripts
 - Network connection issues occur
@@ -89,14 +90,17 @@ Displays a user-friendly error message if:
 #### 4. Security & Standards Compliance
 
 ✅ **CSP Compliant**:
+
 - No inline event handlers (`onclick` removed)
 - All JavaScript uses `addEventListener` pattern
 
 ✅ **No External Frameworks**:
+
 - Replaced Tailwind CDN with inline CSS
 - No SRI hash vulnerabilities
 
 ✅ **Privacy Transparent**:
+
 - Cookie disclosure notice included
 - localStorage usage documented
 
