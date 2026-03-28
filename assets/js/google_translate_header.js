@@ -200,37 +200,21 @@
         }, COMBO_POLL_INTERVAL_MS);
     }
 
-    function initTranslateWidget(root, pageLanguage, includedLanguages) {
+    // Waits for the widget to be ready (created by the googleTranslateElementInit callback).
+    // Does NOT call new TranslateElement() itself — that must happen synchronously in the callback.
+    function ensureWidgetInitialized(root) {
         if (widgetInitialized) {
             return Promise.resolve(true);
         }
 
+        // Start loading the API script if not already started; the callback will create the widget.
         return ensureTranslateApi(root).then(function (ready) {
-            if (!ready || !isTranslateApiReady()) {
-                if (!apiLoadFailed) {
-                    setStatus(root, getDiagnosticMessage(root, 'api-missing'), true);
-                }
+            if (!ready) {
                 return false;
             }
-
-            try {
-                new google.translate.TranslateElement(
-                    {
-                        pageLanguage: pageLanguage,
-                        includedLanguages: includedLanguages,
-                        autoDisplay: false,
-                        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-                    },
-                    'google_translate_element'
-                );
-            } catch (error) {
-                debugLog(root, 'TranslateElement initialization error: ' + (error && error.message ? error.message : String(error)));
-                setStatus(root, getDiagnosticMessage(root, 'combo-missing'), true);
-                return false;
-            }
-
-            widgetInitialized = true;
-            return true;
+            // The callback fires synchronously during script execution, before the load
+            // event resolves this promise, so widgetInitialized should already be true here.
+            return widgetInitialized;
         });
     }
 
@@ -250,7 +234,7 @@
                 setActiveButton(root, langCode);
                 setStatus(root, 'Loading translator...', false);
 
-                initTranslateWidget(root, pageLanguage, includedLanguages).then(function (ready) {
+                ensureWidgetInitialized(root).then(function (ready) {
                     if (!ready && langCode !== pageLanguage) {
                         return;
                     }
@@ -263,11 +247,63 @@
         buttonsBound = true;
     }
 
-    function initializeTranslateHeader() {
+    // Applies the user's saved language preference after the widget has been created.
+    function applyInitialLanguage() {
         if (initialized) {
             return;
         }
+        initialized = true;
 
+        var root = document.querySelector('[data-translate-root]');
+        if (!root) {
+            return;
+        }
+
+        var storageKey = root.getAttribute('data-storage-key') || 'umabot_lang_pref';
+        var pageLanguage = root.getAttribute('data-page-language') || 'en';
+        var preferredLanguage = localStorage.getItem(storageKey) || pageLanguage;
+
+        applyLanguage(root, storageKey, preferredLanguage, pageLanguage);
+    }
+
+    // Google calls this when translate_a/element.js is fully loaded.
+    // new TranslateElement() MUST be called synchronously here — Google's init window
+    // is only open during this callback. Deferring it to a Promise.then() is too late.
+    window.googleTranslateElementInit = function () {
+        var root = document.querySelector('[data-translate-root]');
+        debugLog(root, 'googleTranslateElementInit callback fired.');
+
+        if (widgetInitialized) {
+            return;
+        }
+
+        var pageLanguage = root ? (root.getAttribute('data-page-language') || 'en') : 'en';
+        var includedLanguages = root ? (root.getAttribute('data-included-languages') || 'en,es,fr') : 'en,es,fr';
+
+        try {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: pageLanguage,
+                    includedLanguages: includedLanguages,
+                    autoDisplay: false,
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+                },
+                'google_translate_element'
+            );
+            widgetInitialized = true;
+            debugLog(root, 'TranslateElement created successfully.');
+        } catch (error) {
+            debugLog(root, 'TranslateElement init error: ' + (error && error.message ? error.message : String(error)));
+            if (root) {
+                setStatus(root, getDiagnosticMessage(root, 'combo-missing'), true);
+            }
+            return;
+        }
+
+        applyInitialLanguage();
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
         var root = document.querySelector('[data-translate-root]');
         if (!root) {
             return;
@@ -277,41 +313,12 @@
         var pageLanguage = root.getAttribute('data-page-language') || 'en';
         var includedLanguages = root.getAttribute('data-included-languages') || 'en,es,fr';
 
+        setActiveButton(root, pageLanguage);
+        setStatus(root, 'Loading translator...', false);
         bindButtons(root, storageKey, pageLanguage, includedLanguages);
-        setStatus(root, 'Loading translator...', false);
 
-        initTranslateWidget(root, pageLanguage, includedLanguages).then(function (ready) {
-            if (!ready) {
-                return;
-            }
-
-            var preferredLanguage = localStorage.getItem(storageKey) || pageLanguage;
-            applyLanguage(root, storageKey, preferredLanguage, pageLanguage);
-            initialized = true;
-        });
-    }
-
-    window.googleTranslateElementInit = function () {
-        debugLog(document.querySelector('[data-translate-root]'), 'googleTranslateElementInit callback fired.');
-        initializeTranslateHeader();
-    };
-
-    document.addEventListener('DOMContentLoaded', function () {
-        var root = document.querySelector('[data-translate-root]');
-        if (!root) {
-            return;
-        }
-
-        var defaultLang = root.getAttribute('data-page-language') || 'en';
-        setActiveButton(root, defaultLang);
-        setStatus(root, 'Loading translator...', false);
-
-        ensureTranslateApi(root).then(function (ready) {
-            if (!ready) {
-                return;
-            }
-
-            initializeTranslateHeader();
-        });
+        // Kick off API script loading. Widget creation and language application
+        // happen inside window.googleTranslateElementInit when Google calls it back.
+        ensureTranslateApi(root);
     });
 })();
