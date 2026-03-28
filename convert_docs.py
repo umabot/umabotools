@@ -451,9 +451,8 @@ def convert_docs():
         relative_path = path.relative_to(DOCS_DIR)
         output_file = Path(OUTPUT_DIR) / relative_path.with_suffix('.html')
 
-        # Resolve per-page links inside dist so docs remain self-contained.
-        dist_index_target = Path(DIST_INDEX_HTML)
-        home_link = compute_relative_url(output_file, dist_index_target)
+        # Compute relative link back to the root index.html.
+        home_link = compute_relative_url(output_file, Path(INDEX_HTML))
 
         resolved_header_snippet = header_snippet.replace('../../index.html', home_link)
         
@@ -492,9 +491,6 @@ def main():
     # Convert index.md to index.html
     index_converted = convert_index()
 
-    # Copy root-level support files into dist for self-contained docs.
-    ensure_dist_support_files(index_converted)
-    
     print()
     
     # Convert documentation files
