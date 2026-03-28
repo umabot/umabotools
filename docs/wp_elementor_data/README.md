@@ -8,7 +8,7 @@ Objective: fetch dynamic data from a source like Google Sheets and render it on 
 
 - [Club Ciclista landing page demo](https://innovumabot.com/prueba-club-ciclista/)
 - [Club Ciclista app source](../../clubciclista.html)
-- [Club Ciclista documentation](../dist/clubciclista/README.html)
+- [Club Ciclista documentation](../clubciclista/README.html)
 
 ## Code Files Used in This Integration
 
