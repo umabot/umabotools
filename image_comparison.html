@@ -393,6 +393,8 @@
         const imgBefore = document.getElementById('img-before');
         const mainImgAfter = document.getElementById('img-after');
         const container = document.getElementById('container');
+        const labelBefore = document.querySelector('.label-before');
+        const labelAfter = document.querySelector('.label-after');
 
         const inputUrlBefore = document.getElementById('url-before');
         const inputUrlAfter = document.getElementById('url-after');
@@ -402,17 +404,53 @@
 
         const DEFAULT_BEFORE = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1200&sat=-100";
         const DEFAULT_AFTER = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1200";
+        const LABEL_PADDING = 24; // px of spacing so labels stay clear of the 40px slider handle.
+        const RESIZE_DEBOUNCE_MS = 100;
+        // Cached minimum visible widths for each label (computed in syncLabelThresholds).
+        let minBeforeLabelWidth = 0;
+        let minAfterLabelWidth = 0;
+        let resizeDebounceTimeout = null;
 
         // Update the curtain position
         function updateCurtain(value) {
             wrapper.style.width = `${value}%`;
             handle.style.left = `${value}%`;
+            updateLabelVisibility(Number(value));
         }
 
         // Keep "Before" image full width within clipped container
         function syncImageWidth() {
             const containerWidth = container.offsetWidth;
             imgBefore.style.width = `${containerWidth}px`;
+        }
+
+        function syncLabelThresholds() {
+            // Extra padding keeps labels clear of the 40px slider handle near edges.
+            minBeforeLabelWidth = labelBefore.offsetWidth + LABEL_PADDING;
+            minAfterLabelWidth = labelAfter.offsetWidth + LABEL_PADDING;
+        }
+
+        function setLabelVisibility(labelElement, isVisible) {
+            labelElement.style.opacity = isVisible ? '1' : '0';
+            labelElement.style.pointerEvents = isVisible ? 'auto' : 'none';
+
+            if (isVisible) {
+                labelElement.removeAttribute('aria-hidden');
+            } else {
+                labelElement.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        // Hide labels when their visible side is too narrow to avoid overlap
+        function updateLabelVisibility(value) {
+            const containerWidth = container.offsetWidth;
+            const beforeVisibleWidth = (containerWidth * value) / 100;
+            const afterVisibleWidth = containerWidth - beforeVisibleWidth;
+            const showBefore = beforeVisibleWidth > minBeforeLabelWidth;
+            const showAfter = afterVisibleWidth > minAfterLabelWidth;
+
+            setLabelVisibility(labelBefore, showBefore);
+            setLabelVisibility(labelAfter, showAfter);
         }
 
         // Save to LocalStorage
@@ -477,7 +515,14 @@
             document.querySelectorAll('.custom-file-button span').forEach(s => s.textContent = "Choose local file");
         });
 
-        window.addEventListener('resize', syncImageWidth);
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeDebounceTimeout);
+            resizeDebounceTimeout = setTimeout(() => {
+                syncImageWidth();
+                syncLabelThresholds();
+                updateLabelVisibility(Number(slider.value));
+            }, RESIZE_DEBOUNCE_MS);
+        });
 
         // Initial Load
         function init() {
@@ -488,6 +533,7 @@
             updateImage('after', storedAfter || DEFAULT_AFTER);
             
             syncImageWidth();
+            syncLabelThresholds();
             updateCurtain(50);
         }
 
