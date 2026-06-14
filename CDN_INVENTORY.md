@@ -1,3 +1,7 @@
+---
+skip_conversion: true
+---
+
 # CDN Dependency Inventory
 
 **Last Updated:** 15 March 2026  
