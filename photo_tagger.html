@@ -411,6 +411,85 @@
                 }
             });
         }
+
+        function setCopyButtonState(buttonId, isEnabled) {
+            const button = document.getElementById(buttonId);
+            if (!button) return;
+
+            button.disabled = !isEnabled;
+            button.classList.toggle('opacity-50', !isEnabled);
+            button.classList.toggle('cursor-not-allowed', !isEnabled);
+        }
+
+        async function copyTextToClipboard(text) {
+            if (!text || text === 'N/A') return false;
+
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+
+            const fallbackInput = document.createElement('textarea');
+            fallbackInput.value = text;
+            fallbackInput.setAttribute('readonly', '');
+            fallbackInput.style.position = 'absolute';
+            fallbackInput.style.left = '-9999px';
+            document.body.appendChild(fallbackInput);
+            fallbackInput.select();
+
+            const copied = document.execCommand('copy');
+            document.body.removeChild(fallbackInput);
+            return copied;
+        }
+
+        function showCopyFeedback(button, originalLabel) {
+            if (!button) return;
+            button.textContent = '✅';
+            button.setAttribute('aria-label', 'Copied to clipboard');
+            button.setAttribute('title', 'Copied to clipboard');
+            setTimeout(() => {
+                button.textContent = originalLabel;
+                button.setAttribute('aria-label', 'Copy to clipboard');
+                button.setAttribute('title', 'Copy to clipboard');
+            }, 1200);
+        }
+
+        function setupCopyButtons(title, tags) {
+            const titleButton = document.getElementById('copy-title-btn');
+            const tagsButton = document.getElementById('copy-tags-btn');
+            if (!titleButton || !tagsButton) return;
+
+            titleButton.onclick = async () => {
+                const success = await copyTextToClipboard(title);
+                if (success) {
+                    showCopyFeedback(titleButton, '📋');
+                }
+            };
+
+            tagsButton.onclick = async () => {
+                const success = await copyTextToClipboard(tags);
+                if (success) {
+                    showCopyFeedback(tagsButton, '📋');
+                }
+            };
+
+            setCopyButtonState('copy-title-btn', title !== 'N/A');
+            setCopyButtonState('copy-tags-btn', tags !== 'N/A');
+        }
+
+        historyBody.addEventListener('click', async (event) => {
+            const button = event.target.closest('.history-copy-btn');
+            if (!button || button.disabled) return;
+
+            const cell = button.closest('td');
+            const textSource = cell ? cell.querySelector('[data-copy-source]') : null;
+            const textToCopy = textSource ? textSource.textContent.trim() : '';
+            const success = await copyTextToClipboard(textToCopy);
+
+            if (success) {
+                showCopyFeedback(button, '📋');
+            }
+        });
         
         /**
          * Switches between the Analysis and History tabs.
@@ -476,9 +555,19 @@
                                 onerror="this.src='https://placehold.co/50x50/cccccc/333333?text=N/A'" 
                                 class="w-12 h-12 object-cover rounded shadow-sm">
                         </td>
-                        <td class="px-4 py-3 text-sm font-medium text-gray-800">${title}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-800">
+                            <div class="flex items-center gap-2">
+                                <span data-copy-source>${title}</span>
+                                <button type="button" aria-label="Copy to clipboard" title="Copy to clipboard" class="history-copy-btn px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition duration-150 ${title === 'N/A' ? 'opacity-50 cursor-not-allowed' : ''}" ${title === 'N/A' ? 'disabled' : ''}>📋</button>
+                            </div>
+                        </td>
                         <td class="px-4 py-3 text-xs text-gray-700 italic">${inspiration}</td>
-                        <td class="px-4 py-3 text-xs text-gray-500">${tags}</td>
+                        <td class="px-4 py-3 text-xs text-gray-500">
+                            <div class="flex items-start gap-2">
+                                <span data-copy-source>${tags}</span>
+                                <button type="button" aria-label="Copy to clipboard" title="Copy to clipboard" class="history-copy-btn px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition duration-150 ${tags === 'N/A' ? 'opacity-50 cursor-not-allowed' : ''}" ${tags === 'N/A' ? 'disabled' : ''}>📋</button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -650,7 +739,11 @@
             const titleElement = document.getElementById('title-output');
             const tagsElement = document.getElementById('tags-output');
             
-            if (!suggestions || !titleElement || !tagsElement) return;
+            if (!suggestions || !titleElement || !tagsElement) {
+                setCopyButtonState('copy-title-btn', false);
+                setCopyButtonState('copy-tags-btn', false);
+                return;
+            }
 
             // Get the data keys for the selected language
             const titleKey = `newTitle_${lang}`;
@@ -662,6 +755,7 @@
             // Update the results cells
             titleElement.textContent = title;
             tagsElement.textContent = tags;
+            setupCopyButtons(title, tags);
             
             // Update active flag visual (only for the analysis tab flags)
             updateFlagVisuals('languageSelector', lang);
@@ -721,8 +815,18 @@
                     <td class="px-4 py-3 whitespace-nowrap" id="image-cell">
                         <img src="${link}" onerror="this.src='https://placehold.co/70x70/cccccc/333333?text=Image+N/A'" class="w-16 h-16 object-cover rounded shadow-md">
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-500" id="title-output">...Analyzing...</td>
-                    <td class="px-4 py-3 text-sm text-gray-500" id="tags-output">...Analyzing...</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">
+                        <div class="flex items-center gap-2">
+                            <span id="title-output">...Analyzing...</span>
+                            <button id="copy-title-btn" type="button" disabled aria-label="Copy to clipboard" title="Copy to clipboard" class="px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition duration-150 opacity-50 cursor-not-allowed">📋</button>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500">
+                        <div class="flex items-start gap-2">
+                            <span id="tags-output">...Analyzing...</span>
+                            <button id="copy-tags-btn" type="button" disabled aria-label="Copy to clipboard" title="Copy to clipboard" class="px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition duration-150 opacity-50 cursor-not-allowed">📋</button>
+                        </div>
+                    </td>
                     <td class="px-4 py-3 text-sm text-blue-500 font-semibold" id="status">Fetching Image</td>
                 </tr>
             `);
@@ -765,6 +869,8 @@
                 console.error("Processing error:", error);
                 document.getElementById('title-output').textContent = 'Failed';
                 document.getElementById('tags-output').textContent = 'See console for error.';
+                setCopyButtonState('copy-title-btn', false);
+                setCopyButtonState('copy-tags-btn', false);
                 document.getElementById('status').innerHTML = error.message.includes('API Key Required') ? error.message : '❌ Error';
                 document.getElementById('status').classList.replace('text-blue-500', 'text-red-600');
                 document.getElementById('row-0').classList.replace('bg-yellow-50', 'bg-red-50');
