@@ -19,6 +19,9 @@ LANDING_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/images/InnovUmabot_Logo_favicon.png">
+    <link rel="shortcut icon" type="image/png" href="./assets/images/InnovUmabot_Logo_favicon.png">
+    <link rel="apple-touch-icon" href="./assets/images/InnovUmabot_Logo_favicon.png">
     <title>{title}</title>
     <style>
         /* Reset */
@@ -211,6 +214,9 @@ DOCS_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../assets/images/InnovUmabot_Logo_favicon.png">
+    <link rel="shortcut icon" type="image/png" href="../../assets/images/InnovUmabot_Logo_favicon.png">
+    <link rel="apple-touch-icon" href="../../assets/images/InnovUmabot_Logo_favicon.png">
     <title>{title}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
     <style>
