@@ -185,3 +185,28 @@ curl -s "https://cdn.example.com/library.js" | openssl dgst -sha384 -binary | op
 ### Local Development Test
 
 Simply open any `*.html` file and try it. All apps run via `file://` protocol with no server required.
+
+### Python Setup (uv External Environment)
+
+Use this workflow when you want dependencies managed from this repository (`pyproject.toml` and `uv.lock`) but the virtual environment stored outside the repo.
+
+```bash
+cd ~/Documents/code/umabotools
+mkdir -p ~/development/uv/umabotools
+
+# Sync runtime dependencies into external env
+UV_PROJECT_ENVIRONMENT=~/development/uv/umabotools uv sync
+
+# Sync test/dev dependencies too
+UV_PROJECT_ENVIRONMENT=~/development/uv/umabotools uv sync --extra dev
+
+# Verify installed packages in that environment
+uv pip list --python ~/development/uv/umabotools/bin/python
+```
+
+Run project commands against that same environment:
+
+```bash
+cd ~/Documents/code/umabotools
+UV_PROJECT_ENVIRONMENT=~/development/uv/umabotools uv run pytest tools/mdproperties/test_mdproperties.py -q
+```
