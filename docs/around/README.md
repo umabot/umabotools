@@ -12,8 +12,8 @@ A lightweight, zero-backend single-page web application to plot and visualize li
 Enter multiple locations one per line directly into the collapsible drawer. Supported formats include:
 - **Decimal Coordinates**: Standard latitude and longitude pairs (e.g., `48.8584, 2.2945` or `40.7128 -74.0060`).
 - **DMS Coordinates**: Degrees, minutes, and seconds format (e.g., `48°51'29.8"N 2°17'40.2"E`).
-- **Google Maps URLs**: Links copied directly from Google Maps (e.g., `https://maps.google.com/?q=48.8584,2.2945` or `https://www.google.com/maps/@48.8584,2.2945,15z`).
-- **Addresses and Place Names**: Free-form street addresses or famous landmarks (e.g., `Colosseum, Rome, Italy` or `Tower Bridge, London`), automatically resolved using the Google Maps Geocoding service.
+- **Google Maps URLs**: Both desktop URLs (e.g. `https://maps.google.com/?q=...` or `https://www.google.com/maps/place/...`) and mobile shortlinks (`https://maps.app.goo.gl/...`), automatically unshortened to extract pin coordinates and place titles.
+- **Addresses and Place Names**: Free-form street addresses or famous landmarks (e.g., `2 passage Voltaire, Puteaux, 92800, France` or `Colosseum, Rome`), automatically resolved using Google Maps Geocoder with intelligent street-number relaxation and OpenStreetMap Nominatim fallback.
 
 ### Intelligent Inline Labeling
 Prepend a custom name or label to any location on the same line:

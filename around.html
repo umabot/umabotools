@@ -165,7 +165,7 @@
                 (<code class="bg-gray-100 px-1 py-0.5 rounded text-gray-800">Label: Location</code>).
             </p>
 
-            <textarea id="locationInput" rows="6" placeholder="Eiffel Tower: 48.8584, 2.2945&#10;Colosseum - Rome, Italy&#10;https://maps.google.com/?q=40.7128,-74.0060&#10;Tower Bridge, London"
+            <textarea id="locationInput" rows="6" placeholder="Eiffel Tower: 48.8584, 2.2945&#10;https://maps.app.goo.gl/CXninp14R75w6rC2A&#10;2 passage Voltaire, Puteaux, 92800, France&#10;Notre-Dame - 48°51'10.8&quot;N 2°20'59.6&quot;E"
                 class="w-full p-2.5 text-xs font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none custom-scrollbar resize-none"></textarea>
 
             <!-- Geocoding Status Alert -->
@@ -490,22 +490,81 @@
 
             function parseGoogleMapsURL(url) {
                 try {
-                    // Coordinates in path e.g. /@48.8584,2.2945,15z
-                    const atMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-                    if (atMatch) {
-                        return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+                    // Handle recursive or nested URL encoding (e.g. consent.google.com/ml?continue=...)
+                    let decoded = url;
+                    try {
+                        decoded = decodeURIComponent(decodeURIComponent(url));
+                    } catch(e) {}
+
+                    let coords = null;
+                    let extractedLabel = '';
+
+                    // 1. Check for exact pin coordinates in data parameter: !3d<lat>!4d<lng>
+                    const d3Match = decoded.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+                    if (d3Match) {
+                        coords = { lat: parseFloat(d3Match[1]), lng: parseFloat(d3Match[2]) };
                     }
-                    // Coordinates in query params: ?q=48.8584,2.2945 or ?ll=48.8584,2.2945
-                    const urlObj = new URL(url);
-                    const q = urlObj.searchParams.get('q') || urlObj.searchParams.get('ll') || urlObj.searchParams.get('query');
-                    if (q) {
-                        const coords = parseDecimalCoords(q);
-                        if (coords) return coords;
+
+                    // 2. Check for @lat,lng in path
+                    if (!coords) {
+                        const atMatch = decoded.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+                        if (atMatch) {
+                            coords = { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+                        }
                     }
-                } catch (e) {
-                    // Not a valid URL structure
-                }
+
+                    // 3. Check for query parameters (?q=lat,lng or ?ll=lat,lng or ?query=lat,lng)
+                    if (!coords) {
+                        try {
+                            const urlObj = new URL(decoded.startsWith('http') ? decoded : `https://${decoded}`);
+                            const q = urlObj.searchParams.get('q') || urlObj.searchParams.get('ll') || urlObj.searchParams.get('query');
+                            if (q) {
+                                const dec = parseDecimalCoords(q);
+                                if (dec) coords = dec;
+                            }
+                        } catch (e) {}
+                    }
+
+                    // 4. Extract place name if present in /place/<Place+Name>/
+                    const placeMatch = decoded.match(/\/place\/([^/@?]+)/);
+                    if (placeMatch) {
+                        try {
+                            extractedLabel = decodeURIComponent(placeMatch[1].replace(/\+/g, ' ')).trim();
+                        } catch(e) {}
+                    }
+
+                    if (coords) {
+                        return { coords, extractedLabel };
+                    }
+                } catch (e) {}
                 return null;
+            }
+
+            // Unshorten shortened URLs (e.g. maps.app.goo.gl) using a CORS-friendly unshortener
+            async function unshortenUrl(shortUrl) {
+                if (!/maps\.app\.goo\.gl|goo\.gl\/maps|bit\.ly|t\.co|tinyurl/i.test(shortUrl)) {
+                    return shortUrl;
+                }
+
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+                    const response = await fetch(`https://unshorten.me/json/${encodeURIComponent(shortUrl)}`, {
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.resolved_url) {
+                            return data.resolved_url;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Unshortener service request failed or timed out:', err);
+                }
+                return shortUrl;
             }
 
             // Extract inline label prefix: e.g. "Eiffel Tower: 48.8584, 2.2945" or "Colosseum - Rome"
@@ -554,44 +613,106 @@
                 return { label, query };
             }
 
-            // Geocode a single query
-            function resolveLocation(query) {
+            // Fallback geocoder using OpenStreetMap Nominatim
+            function geocodeWithNominatim(addressQuery) {
                 return new Promise((resolve) => {
-                    // 1. Check decimal
-                    const dec = parseDecimalCoords(query);
-                    if (dec) {
-                        return resolve({ coords: dec, formatted: `${dec.lat.toFixed(5)}, ${dec.lng.toFixed(5)}` });
+                    const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addressQuery)}&format=json&limit=1`;
+                    fetch(nominatimUrl, { headers: { 'Accept': 'application/json' } })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (Array.isArray(data) && data.length > 0) {
+                                resolve({
+                                    coords: { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) },
+                                    formatted: data[0].display_name
+                                });
+                            } else {
+                                resolve({ error: `Could not geocode location: "${addressQuery}"` });
+                            }
+                        })
+                        .catch(err => {
+                            resolve({ error: `Could not resolve address: "${addressQuery}"` });
+                        });
+                });
+            }
+
+            // Geocode a single query with URL unshortening and multi-stage fallback
+            async function resolveLocation(query) {
+                // 1. Check decimal
+                const dec = parseDecimalCoords(query);
+                if (dec) {
+                    return { coords: dec, formatted: `${dec.lat.toFixed(5)}, ${dec.lng.toFixed(5)}` };
+                }
+
+                // 2. Check DMS
+                const dms = parseDMSCoords(query);
+                if (dms) {
+                    return { coords: dms, formatted: `${dms.lat.toFixed(5)}, ${dms.lng.toFixed(5)}` };
+                }
+
+                // 3. Check Google Maps URLs (including short links)
+                if (query.startsWith('http://') || query.startsWith('https://') || query.includes('maps.app.goo.gl') || query.includes('google.com/maps') || query.includes('goo.gl/maps')) {
+                    let targetUrl = query;
+                    if (/maps\.app\.goo\.gl|goo\.gl/i.test(targetUrl)) {
+                        showStatus('Expanding short link...', 'loading');
+                        targetUrl = await unshortenUrl(targetUrl);
                     }
 
-                    // 2. Check DMS
-                    const dms = parseDMSCoords(query);
-                    if (dms) {
-                        return resolve({ coords: dms, formatted: `${dms.lat.toFixed(5)}, ${dms.lng.toFixed(5)}` });
+                    const urlResult = parseGoogleMapsURL(targetUrl);
+                    if (urlResult && urlResult.coords) {
+                        return {
+                            coords: urlResult.coords,
+                            formatted: `${urlResult.coords.lat.toFixed(5)}, ${urlResult.coords.lng.toFixed(5)}`,
+                            extractedLabel: urlResult.extractedLabel
+                        };
                     }
 
-                    // 3. Check Google Maps URL
-                    if (query.includes('google.com/maps') || query.includes('maps.google.') || query.includes('goo.gl/maps')) {
-                        const urlCoords = parseGoogleMapsURL(query);
-                        if (urlCoords) {
-                            return resolve({ coords: urlCoords, formatted: `${urlCoords.lat.toFixed(5)}, ${urlCoords.lng.toFixed(5)}` });
-                        }
+                    // If URL had a place name in /place/<Name> but no coordinates, use that place name for geocoding
+                    const placeMatch = targetUrl.match(/\/place\/([^/@?]+)/);
+                    if (placeMatch) {
+                        try {
+                            const placeName = decodeURIComponent(placeMatch[1].replace(/\+/g, ' ')).trim();
+                            if (placeName) query = placeName;
+                        } catch(e) {}
                     }
+                }
 
-                    // 4. Geocode using Google Maps Geocoder
+                // 4. Geocode using Google Maps Geocoder with intelligent fallback
+                return new Promise((resolve) => {
                     if (!state.geocoder) {
-                        return resolve({ error: 'Google Maps Geocoder not ready.' });
+                        // Fall back directly to Nominatim if Google Geocoder is not loaded
+                        geocodeWithNominatim(query).then(resolve);
+                        return;
                     }
 
                     state.geocoder.geocode({ address: query }, (results, status) => {
                         if (status === 'OK' && results && results[0]) {
                             const loc = results[0].geometry.location;
-                            resolve({
+                            return resolve({
                                 coords: { lat: loc.lat(), lng: loc.lng() },
                                 formatted: results[0].formatted_address
                             });
-                        } else {
-                            resolve({ error: `Could not geocode: "${query}" (${status})` });
                         }
+
+                        // Fallback 4B: If ZERO_RESULTS and query starts with house/street number (e.g. "2 passage Voltaire..."), retry without the number
+                        const leadingNumMatch = query.match(/^\s*\d+[\s,]+(.+)$/);
+                        if (leadingNumMatch && status === 'ZERO_RESULTS') {
+                            const relaxedQuery = leadingNumMatch[1].trim();
+                            state.geocoder.geocode({ address: relaxedQuery }, (relaxedResults, relaxedStatus) => {
+                                if (relaxedStatus === 'OK' && relaxedResults && relaxedResults[0]) {
+                                    const loc = relaxedResults[0].geometry.location;
+                                    return resolve({
+                                        coords: { lat: loc.lat(), lng: loc.lng() },
+                                        formatted: `${query} (${relaxedResults[0].formatted_address})`
+                                    });
+                                }
+                                // Fallback 4C: OpenStreetMap Nominatim
+                                geocodeWithNominatim(query).then(resolve);
+                            });
+                            return;
+                        }
+
+                        // Fallback 4C: OpenStreetMap Nominatim
+                        geocodeWithNominatim(query).then(resolve);
                     });
                 });
             }
@@ -627,17 +748,18 @@
 
                     // Add delay between geocodes to prevent query rate limits
                     if (i > 0) {
-                        await new Promise(r => setTimeout(r, 200));
+                        await new Promise(r => setTimeout(r, 400));
                     }
 
                     const result = await resolveLocation(query);
 
-                    if (result.coords) {
+                    if (result && result.coords) {
+                        const finalLabel = label || result.extractedLabel || defaultBadge;
                         const newPoint = {
                             id: 'pt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
                             index: pointIndex,
                             defaultBadge: defaultBadge,
-                            label: label || defaultBadge,
+                            label: finalLabel,
                             note: '',
                             rawInput: line,
                             lat: result.coords.lat,
@@ -652,7 +774,7 @@
                         addedCount++;
                     } else {
                         failureCount++;
-                        console.warn(result.error);
+                        console.warn(result ? result.error : 'Unknown geocoding error');
                     }
                 }
 
@@ -997,9 +1119,9 @@
             function loadSampleData() {
                 dom.locationInput.value = [
                     'Eiffel Tower: 48.8584, 2.2945',
-                    'Louvre Museum | Rue de Rivoli, 75001 Paris, France',
-                    'Notre-Dame - 48°51\'10.8"N 2°20\'59.6"E',
-                    'Arc de Triomphe: https://maps.google.com/?q=48.8738,2.2950'
+                    'https://maps.app.goo.gl/CXninp14R75w6rC2A',
+                    '2 passage Voltaire, Puteaux, 92800, France',
+                    'Louvre Museum | Rue de Rivoli, 75001 Paris, France'
                 ].join('\n');
             }
 
