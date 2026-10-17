@@ -65,3 +65,37 @@ This tool adheres strictly to the Umabotools security guidelines:
 3. **Plot Points**: Click **📍 Plot Points**. The tool parses coordinates, extracts labels, and geocodes any text addresses.
 4. **Inspect & Edit**: Review plotted points in the bottom table. Edit labels or notes directly inside the table inputs.
 5. **Connect Path**: Toggle **Connect Points** in the top bar to visualize the route order and see the total distance traveled.
+
+### How to Obtain a Google Maps API Key
+
+To use Around, you need a Google Maps API key with access to the Maps JavaScript API and Geocoding API. You can obtain one using either of the following two approaches:
+
+#### Option 1: Free Maps Demo Key (Quickest & No Credit Card)
+The easiest way to try the app without setting up Google Cloud billing is the official Google Maps Demo Key:
+
+1. Visit the [Google Maps Demo Key Quickstart](https://mapsplatform.google.com/maps-demo-key).
+2. Sign in with any personal Google account (no billing account or credit card requested).
+3. Accept the Maps Demo Project terms when prompted.
+4. Click the button to generate and reveal your demo key.
+5. Copy the key, open **Around**, click **⚙️ Settings**, paste the key, and click **Save Key**.
+
+> **Note**: Demo keys are intended for prototyping and have a daily usage quota limit.
+
+#### Option 2: Standard Google Cloud API Key (Recommended for Ongoing Use)
+For regular use, create your own API key in Google Cloud. Google provides a recurring monthly credit that covers generous free-tier usage for Maps and Geocoding:
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project (e.g. `My-Maps-Tools`) or select an existing one.
+3. Enable the required APIs:
+   - Navigate to **APIs & Services > Library**.
+   - Search for and enable **Maps JavaScript API** (renders the map and computes path distances).
+   - Search for and enable **Geocoding API** (converts address names into coordinates).
+4. Create the API credentials:
+   - Navigate to **APIs & Services > Credentials**.
+   - Click **+ Create Credentials** at the top and select **API Key**.
+   - Copy the generated key.
+5. *(Recommended Security)* Restrict the key:
+   - Click on the created key name to edit its settings.
+   - Under **API restrictions**, select **Restrict key** and check only **Maps JavaScript API** and **Geocoding API**.
+   - Under **Application restrictions**, you can restrict usage to specific HTTP referrers (such as `https://<your-username>.github.io/*`) when deploying on GitHub Pages, or keep it unrestricted for local testing via `file://`.
+6. Open **Around**, click the **⚙️ Settings** icon, paste the key, and click **Save Key**. The key is stored locally in your browser and never leaves your device.
