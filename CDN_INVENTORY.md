@@ -45,6 +45,7 @@ skip_conversion: true
 - [photo_tagger.html](photo_tagger.html)
 - [gcal_converter.html](gcal_converter.html)
 - [clubciclista.html](clubciclista.html)
+- [around.html](around.html)
 
 **Security Notes:**
 - ✅ Using prebuilt CSS file (NOT the Play CDN `cdn.tailwindcss.com`)

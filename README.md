@@ -188,17 +188,28 @@ Simply open any `*.html` file and try it. All apps run via `file://` protocol wi
 
 ### Python Setup (uv External Environment)
 
-Use this workflow when you want dependencies managed from this repository (`pyproject.toml` and `uv.lock`) but the virtual environment stored outside the repo.
+Project standard: always use the external uv environment at `~/development/uv/umabotools` for this repository.
+
+Dependencies stay managed by this repository (`pyproject.toml` and `uv.lock`), while the environment itself is stored outside the repo.
+
+Set this once in zsh so uv always targets the external path:
+
+```bash
+echo 'export UV_PROJECT_ENVIRONMENT="$HOME/development/uv/umabotools"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Then initialize and sync from the project root:
 
 ```bash
 cd ~/Documents/code/umabotools
 mkdir -p ~/development/uv/umabotools
 
-# Sync runtime dependencies into external env
-UV_PROJECT_ENVIRONMENT=~/development/uv/umabotools uv sync
+# Sync runtime dependencies
+uv sync
 
-# Sync test/dev dependencies too
-UV_PROJECT_ENVIRONMENT=~/development/uv/umabotools uv sync --extra dev
+# Sync test/dev dependencies
+uv sync --extra dev
 
 # Verify installed packages in that environment
 uv pip list --python ~/development/uv/umabotools/bin/python
@@ -208,5 +219,39 @@ Run project commands against that same environment:
 
 ```bash
 cd ~/Documents/code/umabotools
-UV_PROJECT_ENVIRONMENT=~/development/uv/umabotools uv run pytest tools/mdproperties/test_mdproperties.py -q
+uv run pytest tools/mdproperties/test_mdproperties.py -q
+```
+
+### Warning: VIRTUAL_ENV Does Not Match .venv
+
+If you see this warning:
+
+```text
+warning: `VIRTUAL_ENV=...` does not match the project environment path `.venv` and will be ignored
+```
+
+it means another active virtual environment is set in your shell. For this project, prefer the external uv environment configured with `UV_PROJECT_ENVIRONMENT`.
+
+Resolve it with one of these commands before running uv:
+
+```bash
+deactivate 2>/dev/null || true
+unset VIRTUAL_ENV
+```
+
+### Verify External Setup
+
+```bash
+cd ~/Documents/code/umabotools
+echo "$UV_PROJECT_ENVIRONMENT"
+uv sync
+uv sync --extra dev
+uv pip list --python ~/development/uv/umabotools/bin/python
+uv run pytest tools/mdproperties/test_mdproperties.py -q
+```
+
+Optional cleanup after migration to external-only usage:
+
+```bash
+rm -rf ~/Documents/code/umabotools/.venv
 ```
