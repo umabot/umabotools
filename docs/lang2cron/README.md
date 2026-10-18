@@ -89,7 +89,7 @@ Enforces strict 5-field UNIX syntax:
 
 ### Obtaining a Gemini API Key
 
-Lang2Cron uses `gemini-2.5-flash-lite`, Google's lightweight and cost-effective Flash-tier model.
+Lang2Cron uses `gemini-3.5-flash-lite`, Google's lightweight and cost-effective Flash-tier model.
 
 1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey).
 2. Sign in with your Google account.
@@ -101,7 +101,7 @@ Lang2Cron uses `gemini-2.5-flash-lite`, Google's lightweight and cost-effective 
 ## Technical Details
 
 - **Technology**: Pure HTML5, CSS3, and vanilla JavaScript (no React, Vue, Angular, or Node.js).
-- **Model**: `gemini-2.5-flash-lite` via `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`.
+- **Model**: `gemini-3.5-flash-lite` via `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent`.
 - **Dependencies**:
   - [Tailwind CSS](https://tailwindcss.com/) v2.2.19 (jsDelivr CDN with SHA-384 SRI)
   - Google Fonts Inter
