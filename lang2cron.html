@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/images/InnovUmabot_Logo_favicon.png">
+    <link rel="shortcut icon" type="image/png" href="./assets/images/InnovUmabot_Logo_favicon.png">
+    <link rel="apple-touch-icon" href="./assets/images/InnovUmabot_Logo_favicon.png">
+    <title>Lang2Cron - Natural Language to UNIX Cron Generator</title>
+
+    <!-- Tailwind CSS (Pinned v2.2.19 with SRI per CDN_INVENTORY.md) -->
+    <link 
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+        integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg"
+        crossorigin="anonymous">
+
+    <!-- Google Fonts (Inter) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-card-subtle: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --chat-user-bg: #2563eb;
+            --chat-user-text: #ffffff;
+            --chat-assistant-bg: #f8fafc;
+            --chat-assistant-border: #e2e8f0;
+            --chat-assistant-text: #1e293b;
+            --cron-card-bg: #0f172a;
+            --cron-card-text: #f8fafc;
+            --cron-code-bg: #1e293b;
+            --cron-badge-bg: #334155;
+            --cron-badge-text: #38bdf8;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+        }
+
+        .dark-theme {
+            --bg-page: #0b1120;
+            --bg-card: #1e293b;
+            --bg-card-subtle: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --chat-user-bg: #3b82f6;
+            --chat-user-text: #ffffff;
+            --chat-assistant-bg: #162032;
+            --chat-assistant-border: #334155;
+            --chat-assistant-text: #e2e8f0;
+            --cron-card-bg: #020617;
+            --cron-card-text: #f8fafc;
+            --cron-code-bg: #0f172a;
+            --cron-badge-bg: #1e293b;
+            --cron-badge-text: #38bdf8;
+            --input-bg: #1e293b;
+            --input-border: #475569;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            transition: background-color 0.25s ease, color 0.25s ease;
+            min-height: 100vh;
+        }
+
+        .font-mono-code {
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .chat-bubble-assistant {
+            background-color: var(--chat-assistant-bg);
+            border: 1px solid var(--chat-assistant-border);
+            color: var(--chat-assistant-text);
+        }
+
+        .chat-bubble-user {
+            background-color: var(--chat-user-bg);
+            color: var(--chat-user-text);
+        }
+
+        .card-surface {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-subtle {
+            background-color: var(--bg-card-subtle);
+            border: 1px solid var(--border-color);
+        }
+
+        .cron-display-card {
+            background-color: var(--cron-card-bg);
+            color: var(--cron-card-text);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+        }
+
+        .cron-code-pill {
+            background-color: var(--cron-code-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cron-badge {
+            background-color: var(--cron-badge-bg);
+            color: var(--cron-badge-text);
+        }
+
+        .input-surface {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-main);
+        }
+
+        .pulse-subtle {
+            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Initial Setup Overlay if no API Key -->
+    <div id="noKeyOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4 hidden">
+        <div class="card-surface max-w-lg w-full rounded-2xl p-6 sm:p-8 shadow-2xl text-center">
+            <div class="w-16 h-16 mx-auto mb-4 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl">
+                ⏱️
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Welcome to Lang2Cron</h2>
+            <p class="text-sm mb-6 opacity-80" style="color: var(--text-muted);">
+                Lang2Cron translates your schedule requests from natural language into standard 5-field UNIX cron expressions. To ground and clarify your schedule, please enter your Gemini API key. Your key stays in your browser's <code class="px-1 py-0.5 rounded text-xs font-mono bg-gray-200 dark:bg-gray-800">localStorage</code> and is never sent to our servers.
+            </p>
+            <div class="space-y-4">
+                <div class="relative">
+                    <input type="password" id="initialApiKeyInput" placeholder="Paste your Gemini API Key here (AIzaSy...)"
+                        class="input-surface w-full px-4 py-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none pr-10">
+                    <button type="button" id="toggleInitialKeyVisibility" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-sm" title="Show/Hide Key">
+                        👁️
+                    </button>
+                </div>
+                <button id="saveInitialKeyBtn" 
+                    class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow transition">
+                    Save Key &amp; Launch Lang2Cron
+                </button>
+            </div>
+            <div class="mt-5 pt-4 border-t text-xs space-y-1" style="border-color: var(--border-color); color: var(--text-muted);">
+                <p>Need a free Gemini API key?</p>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium inline-block mt-1">
+                    Get a Gemini API Key from Google AI Studio &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="card-surface border-b sticky top-0 z-20 px-4 py-3 sm:px-6">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="index.html" class="flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-bold" title="Back to Umabot Tools">
+                    <span class="text-2xl">⏳</span>
+                    <span class="text-lg font-bold tracking-tight" style="color: var(--text-main);">Lang2Cron</span>
+                </a>
+                <span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 font-semibold rounded-full">
+                    UNIX Cron Generator
+                </span>
+            </div>
+
+            <!-- Action Controls: Theme toggle, Settings modal button, Documentation link -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button id="themeToggleBtn" class="p-2 rounded-lg border card-surface hover:opacity-80 transition text-sm flex items-center justify-center" title="Toggle Dark/Light Mode">
+                    <span id="themeIcon">🌙</span>
+                </button>
+                <button id="openSettingsBtn" class="p-2 rounded-lg border card-surface hover:opacity-80 transition text-sm flex items-center justify-center" title="API Key Settings">
+                    <span>⚙️</span>
+                </button>
+                <a href="dist/lang2cron/README.html" class="px-3 py-1.5 text-xs font-semibold rounded-lg border card-surface hover:opacity-80 transition hidden sm:inline-flex items-center space-x-1" title="View Documentation">
+                    <span>📖 Docs</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 flex flex-col space-y-4">
+
+        <!-- Active Cron Result Banner (Visible whenever a schedule is grounded and ready) -->
+        <section id="cronResultCard" class="cron-display-card rounded-2xl p-4 sm:p-6 shadow-xl transition-all duration-300 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-700">
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-xs uppercase tracking-wider font-bold text-emerald-400">Standard 5-Field UNIX Cron</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-mono">0=Sun</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="copyCronBtn" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-lg transition flex items-center space-x-1.5 shadow">
+                        <span id="copyIcon">📋</span>
+                        <span id="copyBtnText">Copy Cron</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Cron Expression Output -->
+            <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="text-xs text-gray-400 mb-1">Generated Cron Expression:</div>
+                    <div id="cronExpressionDisplay" class="font-mono-code text-2xl sm:text-3xl font-extrabold tracking-widest text-sky-300 select-all">
+                        * * * * *
+                    </div>
+                </div>
+                <div class="text-right sm:max-w-xs">
+                    <div class="text-xs text-gray-400 mb-1">Human Description:</div>
+                    <div id="cronHumanExplanation" class="text-sm font-medium text-gray-200">
+                        Every minute of every day
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5-Field Breakdown Grid -->
+            <div class="pt-3 border-t border-gray-800">
+                <div class="text-xs text-gray-400 mb-2 font-medium">Field-by-Field Breakdown:</div>
+                <div class="grid grid-cols-5 gap-2 text-center text-xs font-mono-code">
+                    <div class="cron-code-pill p-2 rounded-lg">
+                        <div class="text-gray-400 text-[10px] uppercase">Minute</div>
+                        <div id="fieldMinute" class="text-sky-300 font-bold text-sm mt-0.5">*</div>
+                        <div class="text-gray-500 text-[9px] mt-0.5">0 - 59</div>
+                    </div>
+                    <div class="cron-code-pill p-2 rounded-lg">
+                        <div class="text-gray-400 text-[10px] uppercase">Hour</div>
+                        <div id="fieldHour" class="text-sky-300 font-bold text-sm mt-0.5">*</div>
+                        <div class="text-gray-500 text-[9px] mt-0.5">0 - 23</div>
+                    </div>
+                    <div class="cron-code-pill p-2 rounded-lg">
+                        <div class="text-gray-400 text-[10px] uppercase">Day of Mo</div>
+                        <div id="fieldDom" class="text-sky-300 font-bold text-sm mt-0.5">*</div>
+                        <div class="text-gray-500 text-[9px] mt-0.5">1 - 31</div>
+                    </div>
+                    <div class="cron-code-pill p-2 rounded-lg">
+                        <div class="text-gray-400 text-[10px] uppercase">Month</div>
+                        <div id="fieldMonth" class="text-sky-300 font-bold text-sm mt-0.5">*</div>
+                        <div class="text-gray-500 text-[9px] mt-0.5">1 - 12</div>
+                    </div>
+                    <div class="cron-code-pill p-2 rounded-lg">
+                        <div class="text-gray-400 text-[10px] uppercase">Day of Wk</div>
+                        <div id="fieldDow" class="text-sky-300 font-bold text-sm mt-0.5">*</div>
+                        <div class="text-gray-500 text-[9px] mt-0.5">0-6 (Sun=0)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timezone & System Clock Guidance -->
+            <div class="mt-3 pt-2 text-[11px] text-gray-400 flex items-center justify-between border-t border-gray-800">
+                <span>⚠️ <strong>Note:</strong> Standard UNIX cron schedules run relative to your host server's local system clock (often configured to UTC).</span>
+                <span id="cronConfidenceBadge" class="text-emerald-400 font-semibold text-[10px] uppercase tracking-wide">Validated</span>
+            </div>
+        </section>
+
+        <!-- Conversational Clarification & Chat Stream -->
+        <section class="card-surface rounded-2xl flex-1 flex flex-col shadow-sm overflow-hidden border">
+            <!-- Chat Header -->
+            <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: var(--border-color);">
+                <div class="flex items-center space-x-2">
+                    <span class="text-base">💬</span>
+                    <span class="text-sm font-bold">Natural Language Schedule Clarification</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="newChatBtn" class="text-xs px-2.5 py-1 rounded-md border card-subtle hover:opacity-80 transition" title="Start fresh conversation">
+                        🔄 New Request
+                    </button>
+                </div>
+            </div>
+
+            <!-- Message Stream Area -->
+            <div id="chatMessagesContainer" class="flex-1 p-4 sm:p-5 overflow-y-auto space-y-3.5 custom-scrollbar min-h-[260px] max-h-[460px]">
+                <!-- Initial Welcome Message -->
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm flex-shrink-0 font-bold">
+                        ⏱️
+                    </div>
+                    <div class="chat-bubble-assistant rounded-2xl rounded-tl-none p-3.5 text-xs sm:text-sm max-w-2xl shadow-sm leading-relaxed">
+                        <p class="font-semibold mb-1">Hi! I am your Lang2Cron assistant.</p>
+                        <p>Tell me when or how often you want your job or script to run in natural language (e.g., <em>"every 15 minutes"</em>, <em>"weekdays at 8:30 AM"</em>, or in any language like <em>"todos los lunes a las 9"</em>).</p>
+                        <p class="mt-2 text-xs opacity-75">If your schedule is ambiguous (such as <em>"I want to run it recurrently"</em>), I will ask clarifying questions until we have a precise, standard 5-field UNIX cron pattern.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Starter Prompt Chips -->
+            <div class="px-4 py-2 border-t card-subtle overflow-x-auto custom-scrollbar flex items-center space-x-2 text-xs" style="border-color: var(--border-color);">
+                <span class="text-[11px] font-semibold opacity-70 whitespace-nowrap">Examples:</span>
+                <button class="starter-chip px-2.5 py-1 rounded-full card-surface border hover:bg-blue-50 dark:hover:bg-blue-900 transition whitespace-nowrap text-xs" data-prompt="How do I use you?">
+                    ❓ How do I use you?
+                </button>
+                <button class="starter-chip px-2.5 py-1 rounded-full card-surface border hover:bg-blue-50 dark:hover:bg-blue-900 transition whitespace-nowrap text-xs" data-prompt="Every 15 minutes">
+                    ⚡ Every 15 minutes
+                </button>
+                <button class="starter-chip px-2.5 py-1 rounded-full card-surface border hover:bg-blue-50 dark:hover:bg-blue-900 transition whitespace-nowrap text-xs" data-prompt="Weekdays at 09:00 AM">
+                    💼 Weekdays at 09:00 AM
+                </button>
+                <button class="starter-chip px-2.5 py-1 rounded-full card-surface border hover:bg-blue-50 dark:hover:bg-blue-900 transition whitespace-nowrap text-xs" data-prompt="First day of every month at midnight">
+                    📅 First day of month
+                </button>
+                <button class="starter-chip px-2.5 py-1 rounded-full card-surface border hover:bg-blue-50 dark:hover:bg-blue-900 transition whitespace-nowrap text-xs" data-prompt="I want to run it recurrently">
+                    🔄 I want to run it recurrently
+                </button>
+                <button class="starter-chip px-2.5 py-1 rounded-full card-surface border hover:bg-blue-50 dark:hover:bg-blue-900 transition whitespace-nowrap text-xs" data-prompt="Todos los domingos a las diez de la noche">
+                    🌐 Domingos 22:00 (ES)
+                </button>
+            </div>
+
+            <!-- Input Bar -->
+            <form id="chatForm" class="p-3 sm:p-4 border-t flex items-center space-x-2" style="border-color: var(--border-color);">
+                <input type="text" id="userInput" placeholder="Type your schedule in any language (e.g. 'Daily at 8:30 AM')..."
+                    autocomplete="off"
+                    class="input-surface flex-1 px-4 py-2.5 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none border shadow-inner">
+                <button type="submit" id="sendBtn"
+                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm rounded-xl shadow transition flex items-center space-x-1.5 flex-shrink-0 disabled:opacity-50">
+                    <span>Send</span>
+                    <span>&rarr;</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- Cron Syntax Quick Reference Table -->
+        <section class="card-surface rounded-2xl p-4 sm:p-5 border text-xs">
+            <details class="cursor-pointer group">
+                <summary class="font-bold text-sm flex items-center justify-between select-none list-none">
+                    <span class="flex items-center space-x-2">
+                        <span>📚</span>
+                        <span>Standard UNIX Cron Reference (5-Field Syntax)</span>
+                    </span>
+                    <span class="text-gray-400 group-open:rotate-180 transition-transform duration-200">▼</span>
+                </summary>
+                <div class="mt-4 pt-3 border-t space-y-3" style="border-color: var(--border-color); color: var(--text-muted);">
+                    <p>Standard UNIX cron format consists of 5 whitespace-separated fields: <code>minute hour day-of-month month day-of-week</code> (0 = Sunday). Standard operators include <code>*</code> (every value), <code>*/n</code> (step), <code>,</code> (list), and <code>-</code> (range).</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse font-mono-code text-[11px]">
+                            <thead>
+                                <tr class="border-b" style="border-color: var(--border-color);">
+                                    <th class="py-1.5 px-2">Frequency</th>
+                                    <th class="py-1.5 px-2">Cron Pattern</th>
+                                    <th class="py-1.5 px-2">Explanation</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y" style="border-color: var(--border-color);">
+                                <tr>
+                                    <td class="py-1.5 px-2">Every 5 minutes</td>
+                                    <td class="py-1.5 px-2 text-blue-600 dark:text-blue-400 font-bold">*/5 * * * *</td>
+                                    <td class="py-1.5 px-2">Minutes 0, 5, 10, ..., 55 of every hour</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 px-2">Every 15 minutes</td>
+                                    <td class="py-1.5 px-2 text-blue-600 dark:text-blue-400 font-bold">*/15 * * * *</td>
+                                    <td class="py-1.5 px-2">Minutes 0, 15, 30, and 45 of every hour</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 px-2">Top of every hour</td>
+                                    <td class="py-1.5 px-2 text-blue-600 dark:text-blue-400 font-bold">0 * * * *</td>
+                                    <td class="py-1.5 px-2">Runs at minute 0 of every hour</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 px-2">Daily at midnight</td>
+                                    <td class="py-1.5 px-2 text-blue-600 dark:text-blue-400 font-bold">0 0 * * *</td>
+                                    <td class="py-1.5 px-2">Runs at 00:00 every day</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 px-2">Daily at 08:30 AM</td>
+                                    <td class="py-1.5 px-2 text-blue-600 dark:text-blue-400 font-bold">30 8 * * *</td>
+                                    <td class="py-1.5 px-2">Runs at 08:30 every day</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 px-2">Weekdays at 09:00 AM</td>
+                                    <td class="py-1.5 px-2 text-blue-600 dark:text-blue-400 font-bold">0 9 * * 1-5</td>
+                                    <td class="py-1.5 px-2">Monday through Friday at 09:00</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1.5 px-2">First day of every month</td>
+                                    <td class="py-1.5 px-2 text-blue-600 dark:text-blue-400 font-bold">0 0 1 * *</td>
+                                    <td class="py-1.5 px-2">Runs at 00:00 on day 1 of the month</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </details>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="card-surface border-t py-4 px-6 text-center text-xs mt-auto" style="border-color: var(--border-color); color: var(--text-muted);">
+        <p><strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">innovumabot.com</a> &bull; MIT License</p>
+        <p class="mt-1 opacity-75">All translation &amp; validation logic runs client-side in your browser. No server required.</p>
+    </footer>
+
+    <!-- Settings Modal (API Key Management) -->
+    <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 hidden p-4">
+        <div class="card-surface max-w-md w-full rounded-2xl p-6 shadow-2xl relative">
+            <div class="flex items-center justify-between pb-3 border-b" style="border-color: var(--border-color);">
+                <h3 class="text-lg font-bold flex items-center space-x-2">
+                    <span>⚙️</span>
+                    <span>Lang2Cron Settings</span>
+                </h3>
+                <button id="closeSettingsBtn" class="text-gray-400 hover:text-gray-700 text-lg font-bold p-1">&times;</button>
+            </div>
+
+            <div class="py-4 space-y-4 text-xs">
+                <div>
+                    <label for="apiKeyField" class="block font-semibold uppercase mb-1">
+                        Gemini API Key
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="apiKeyField" placeholder="AIzaSy..."
+                            class="input-surface w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono-code pr-9">
+                        <button type="button" id="toggleSettingsKeyVisibility" class="absolute right-2.5 top-2 text-gray-400 hover:text-gray-600" title="Show/Hide Key">
+                            👁️
+                        </button>
+                    </div>
+                    <div id="keyStatusBadge" class="mt-1.5 text-xs text-gray-500">
+                        Checking...
+                    </div>
+                </div>
+
+                <div class="card-subtle p-3 rounded-lg border space-y-1.5" style="border-color: var(--border-color);">
+                    <p class="font-semibold text-blue-600 dark:text-blue-400">Grounding Model:</p>
+                    <p class="font-mono-code">gemini-2.5-flash-lite</p>
+                    <p class="text-[11px] opacity-75">Lightweight, ultra-fast model used to parse natural language schedules into standard UNIX specifications.</p>
+                </div>
+
+                <div class="card-subtle p-3 rounded-lg border space-y-1.5" style="border-color: var(--border-color);">
+                    <p class="font-semibold text-blue-600 dark:text-blue-400">About Key Storage:</p>
+                    <p>Your API key is stored exclusively in your browser's <code class="font-mono-code">localStorage</code>. It is never logged, proxied, or sent anywhere other than directly to the Google Generative Language API endpoint.</p>
+                    <div class="pt-1">
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium">
+                            Get a free Gemini API Key from Google AI Studio &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t flex justify-end space-x-2" style="border-color: var(--border-color);">
+                <button id="removeKeyBtn" class="px-3 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg font-semibold transition">
+                    Remove Key
+                </button>
+                <button id="saveKeyBtn" class="px-4 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow transition">
+                    Save Key
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script (Vanilla JS only per AGENTS.md) -->
+    <script>
+        (function() {
+            'use strict';
+
+            // Constants & Storage Keys
+            const STORAGE_KEY_API = 'lang2cron_gemini_api_key';
+            const STORAGE_KEY_THEME = 'lang2cron_theme';
+            const GEMINI_MODEL = 'gemini-2.5-flash-lite';
+            const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+            // Application State
+            const state = {
+                apiKey: localStorage.getItem(STORAGE_KEY_API) || '',
+                theme: localStorage.getItem(STORAGE_KEY_THEME) || 'light',
+                conversationHistory: [], // Holds turn-by-turn messages
+                isGenerating: false,
+                currentCron: null
+            };
+
+            // DOM References
+            const dom = {
+                noKeyOverlay: document.getElementById('noKeyOverlay'),
+                initialApiKeyInput: document.getElementById('initialApiKeyInput'),
+                toggleInitialKeyVisibility: document.getElementById('toggleInitialKeyVisibility'),
+                saveInitialKeyBtn: document.getElementById('saveInitialKeyBtn'),
+                themeToggleBtn: document.getElementById('themeToggleBtn'),
+                themeIcon: document.getElementById('themeIcon'),
+                settingsModal: document.getElementById('settingsModal'),
+                openSettingsBtn: document.getElementById('openSettingsBtn'),
+                closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+                apiKeyField: document.getElementById('apiKeyField'),
+                toggleSettingsKeyVisibility: document.getElementById('toggleSettingsKeyVisibility'),
+                keyStatusBadge: document.getElementById('keyStatusBadge'),
+                saveKeyBtn: document.getElementById('saveKeyBtn'),
+                removeKeyBtn: document.getElementById('removeKeyBtn'),
+                cronResultCard: document.getElementById('cronResultCard'),
+                cronExpressionDisplay: document.getElementById('cronExpressionDisplay'),
+                cronHumanExplanation: document.getElementById('cronHumanExplanation'),
+                fieldMinute: document.getElementById('fieldMinute'),
+                fieldHour: document.getElementById('fieldHour'),
+                fieldDom: document.getElementById('fieldDom'),
+                fieldMonth: document.getElementById('fieldMonth'),
+                fieldDow: document.getElementById('fieldDow'),
+                copyCronBtn: document.getElementById('copyCronBtn'),
+                copyBtnText: document.getElementById('copyBtnText'),
+                copyIcon: document.getElementById('copyIcon'),
+                chatMessagesContainer: document.getElementById('chatMessagesContainer'),
+                chatForm: document.getElementById('chatForm'),
+                userInput: document.getElementById('userInput'),
+                sendBtn: document.getElementById('sendBtn'),
+                newChatBtn: document.getElementById('newChatBtn'),
+                starterChips: document.querySelectorAll('.starter-chip')
+            };
+
+            // System Grounding Prompt for Gemini
+            const SYSTEM_PROMPT = `You are Lang2Cron, an expert schedule grounding assistant.
+Your goal is to converse with a user (in whatever language they speak) to ground their scheduling request into a standard 5-field UNIX cron schedule.
+
+Standard UNIX Cron Syntax:
+- Exactly 5 fields separated by spaces: Minute Hour DayOfMonth Month DayOfWeek
+- Minute: 0 - 59
+- Hour: 0 - 23 (24-hour clock)
+- Day of Month: 1 - 31
+- Month: 1 - 12
+- Day of Week: 0 - 6 (where 0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+- Standard operators allowed: '*' (all), '*/n' (step), ',' (list), '-' (range).
+- DO NOT use non-standard extensions like 6-field quartz seconds, 'L', 'W', '?', or '#'.
+
+Interaction Rules:
+1. Grounding and Clarification:
+   - If the user's intent is ambiguous (e.g. "I want to run it recurrently", "run it often", "run it twice a day"), DO NOT guess an arbitrary schedule. Set status to "clarification_needed" and politely ask questions in the user's language (e.g., "How often do you need to run it? Daily, every 2 days? At what specific time?").
+   - If the user asks general informational or help questions (e.g. "How do I use you?", "what is this?", "¿cómo te uso?"), set status to "info" and explain clearly in their language how to use Lang2Cron by describing a schedule.
+   - When the user's schedule is clearly specified (e.g. "every 15 minutes", "weekdays at 9am", "first day of every month at midnight"), set status to "ready", provide the exact spec fields, and explain the schedule in the user's language in the "message" and "explanation" fields.
+2. Language:
+   - Always respond in the same language the user communicates with.
+3. Output Format:
+   - You MUST output a strictly valid JSON object matching this schema:
+   {
+     "status": "ready" | "clarification_needed" | "info",
+     "message": "Friendly response or clarifying question to the user in their language",
+     "spec": {
+       "minute": "string (e.g. '*/15' or '0' or '30')",
+       "hour": "string (e.g. '*' or '9' or '0')",
+       "day_of_month": "string (e.g. '*' or '1')",
+       "month": "string (e.g. '*')",
+       "day_of_week": "string (e.g. '*' or '1-5' or '0')",
+       "explanation": "Human readable explanation of the schedule",
+       "frequency": "Summary frequency tag like 'Every 15 minutes' or 'Weekdays'"
+     }
+   }
+   (If status is "clarification_needed" or "info", spec can be null).`;
+
+            /**
+             * Initialize Application
+             */
+            function init() {
+                applyTheme(state.theme);
+                checkApiKeyPresence();
+                setupEventListeners();
+            }
+
+            /**
+             * Theme Management
+             */
+            function applyTheme(theme) {
+                state.theme = theme;
+                localStorage.setItem(STORAGE_KEY_THEME, theme);
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark-theme');
+                    dom.themeIcon.textContent = '☀️';
+                    dom.themeToggleBtn.title = 'Switch to Light Mode';
+                } else {
+                    document.documentElement.classList.remove('dark-theme');
+                    dom.themeIcon.textContent = '🌙';
+                    dom.themeToggleBtn.title = 'Switch to Dark Mode';
+                }
+            }
+
+            function toggleTheme() {
+                const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
+                applyTheme(nextTheme);
+            }
+
+            /**
+             * API Key Management
+             */
+            function checkApiKeyPresence() {
+                if (!state.apiKey || state.apiKey.trim() === '') {
+                    dom.noKeyOverlay.classList.remove('hidden');
+                    updateKeyStatusBadge(false);
+                } else {
+                    dom.noKeyOverlay.classList.add('hidden');
+                    dom.apiKeyField.value = state.apiKey;
+                    updateKeyStatusBadge(true);
+                }
+            }
+
+            function updateKeyStatusBadge(isConfigured) {
+                if (isConfigured) {
+                    dom.keyStatusBadge.innerHTML = '<span class="text-emerald-600 dark:text-emerald-400 font-semibold">✓ API Key configured</span>';
+                } else {
+                    dom.keyStatusBadge.innerHTML = '<span class="text-amber-600 dark:text-amber-400 font-semibold">⚠️ No API Key set</span>';
+                }
+            }
+
+            function saveKey(key) {
+                const cleanKey = key.trim();
+                if (!cleanKey) {
+                    alert('Please enter a valid Gemini API Key.');
+                    return false;
+                }
+                state.apiKey = cleanKey;
+                localStorage.setItem(STORAGE_KEY_API, cleanKey);
+                dom.apiKeyField.value = cleanKey;
+                updateKeyStatusBadge(true);
+                dom.noKeyOverlay.classList.add('hidden');
+                dom.settingsModal.classList.add('hidden');
+                return true;
+            }
+
+            function removeKey() {
+                if (confirm('Are you sure you want to remove your Gemini API key from local storage?')) {
+                    state.apiKey = '';
+                    localStorage.removeItem(STORAGE_KEY_API);
+                    dom.apiKeyField.value = '';
+                    dom.initialApiKeyInput.value = '';
+                    updateKeyStatusBadge(false);
+                    dom.settingsModal.classList.add('hidden');
+                    dom.noKeyOverlay.classList.remove('hidden');
+                }
+            }
+
+            /**
+             * Event Listeners
+             */
+            function setupEventListeners() {
+                // Theme Toggle
+                dom.themeToggleBtn.addEventListener('click', toggleTheme);
+
+                // Initial Overlay Key Save
+                dom.saveInitialKeyBtn.addEventListener('click', function() {
+                    const val = dom.initialApiKeyInput.value;
+                    if (saveKey(val)) {
+                        dom.initialApiKeyInput.value = '';
+                    }
+                });
+                dom.initialApiKeyInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        dom.saveInitialKeyBtn.click();
+                    }
+                });
+
+                // Visibility toggles
+                dom.toggleInitialKeyVisibility.addEventListener('click', function() {
+                    const isPwd = dom.initialApiKeyInput.type === 'password';
+                    dom.initialApiKeyInput.type = isPwd ? 'text' : 'password';
+                    dom.toggleInitialKeyVisibility.textContent = isPwd ? '🙈' : '👁️';
+                });
+                dom.toggleSettingsKeyVisibility.addEventListener('click', function() {
+                    const isPwd = dom.apiKeyField.type === 'password';
+                    dom.apiKeyField.type = isPwd ? 'text' : 'password';
+                    dom.toggleSettingsKeyVisibility.textContent = isPwd ? '🙈' : '👁️';
+                });
+
+                // Settings Modal Controls
+                dom.openSettingsBtn.addEventListener('click', function() {
+                    dom.apiKeyField.value = state.apiKey;
+                    dom.settingsModal.classList.remove('hidden');
+                });
+                dom.closeSettingsBtn.addEventListener('click', function() {
+                    dom.settingsModal.classList.add('hidden');
+                });
+                dom.settingsModal.addEventListener('click', function(e) {
+                    if (e.target === dom.settingsModal) {
+                        dom.settingsModal.classList.add('hidden');
+                    }
+                });
+                dom.saveKeyBtn.addEventListener('click', function() {
+                    saveKey(dom.apiKeyField.value);
+                });
+                dom.removeKeyBtn.addEventListener('click', removeKey);
+
+                // Chat Form Submission
+                dom.chatForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleUserMessage();
+                });
+
+                // Reset / New Chat
+                dom.newChatBtn.addEventListener('click', resetConversation);
+
+                // Starter Chips
+                dom.starterChips.forEach(function(chip) {
+                    chip.addEventListener('click', function() {
+                        const promptText = chip.getAttribute('data-prompt');
+                        if (promptText) {
+                            dom.userInput.value = promptText;
+                            handleUserMessage();
+                        }
+                    });
+                });
+
+                // 1-Click Copy Button
+                dom.copyCronBtn.addEventListener('click', copyCronPattern);
+            }
+
+            /**
+             * Copy Cron Pattern with visual feedback
+             */
+            function copyCronPattern() {
+                if (!state.currentCron) return;
+                const pattern = state.currentCron.expression;
+                navigator.clipboard.writeText(pattern).then(function() {
+                    dom.copyBtnText.textContent = 'Copied!';
+                    dom.copyIcon.textContent = '✓';
+                    dom.copyCronBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                    dom.copyCronBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+
+                    setTimeout(function() {
+                        dom.copyBtnText.textContent = 'Copy Cron';
+                        dom.copyIcon.textContent = '📋';
+                        dom.copyCronBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+                        dom.copyCronBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                    }, 2000);
+                }).catch(function(err) {
+                    console.error('Copy failed: ', err);
+                });
+            }
+
+            /**
+             * Reset Conversation
+             */
+            function resetConversation() {
+                state.conversationHistory = [];
+                state.currentCron = null;
+                dom.cronResultCard.classList.add('hidden');
+                
+                // Clear chat messages except the welcome bubble
+                while (dom.chatMessagesContainer.children.length > 1) {
+                    dom.chatMessagesContainer.removeChild(dom.chatMessagesContainer.lastChild);
+                }
+                dom.userInput.value = '';
+                dom.userInput.focus();
+            }
+
+            /**
+             * Append a chat message bubble to the container
+             */
+            function appendMessage(role, text) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex items-start space-x-3 ' + (role === 'user' ? 'justify-end' : '');
+
+                if (role === 'assistant') {
+                    const avatar = document.createElement('div');
+                    avatar.className = 'w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm flex-shrink-0 font-bold';
+                    avatar.textContent = '⏱️';
+                    wrapper.appendChild(avatar);
+                }
+
+                const bubble = document.createElement('div');
+                bubble.className = (role === 'user'
+                    ? 'chat-bubble-user rounded-2xl rounded-tr-none'
+                    : 'chat-bubble-assistant rounded-2xl rounded-tl-none') +
+                    ' p-3.5 text-xs sm:text-sm max-w-xl shadow-sm leading-relaxed whitespace-pre-wrap';
+                bubble.textContent = text;
+                wrapper.appendChild(bubble);
+
+                if (role === 'user') {
+                    const avatar = document.createElement('div');
+                    avatar.className = 'w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center justify-center text-sm flex-shrink-0 font-bold';
+                    avatar.textContent = '👤';
+                    wrapper.appendChild(avatar);
+                }
+
+                dom.chatMessagesContainer.appendChild(wrapper);
+                dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
+                return wrapper;
+            }
+
+            /**
+             * Append Loading Indicator
+             */
+            function appendLoadingIndicator() {
+                const wrapper = document.createElement('div');
+                wrapper.id = 'loadingBubble';
+                wrapper.className = 'flex items-start space-x-3';
+
+                const avatar = document.createElement('div');
+                avatar.className = 'w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm flex-shrink-0 font-bold';
+                avatar.textContent = '⏱️';
+                wrapper.appendChild(avatar);
+
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble-assistant rounded-2xl rounded-tl-none p-3.5 text-xs sm:text-sm shadow-sm flex items-center space-x-2 text-gray-500';
+                bubble.innerHTML = '<span class="animate-spin">⏳</span><span>Analyzing schedule &amp; grounding UNIX cron rules...</span>';
+                wrapper.appendChild(bubble);
+
+                dom.chatMessagesContainer.appendChild(wrapper);
+                dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
+                return wrapper;
+            }
+
+            function removeLoadingIndicator() {
+                const el = document.getElementById('loadingBubble');
+                if (el) el.remove();
+            }
+
+            /**
+             * JavaScript UNIX Cron Spec Validator and Compiler
+             */
+            function validateAndCompileCronSpec(spec) {
+                if (!spec) return { valid: false, error: 'No specification provided.' };
+
+                const clean = {
+                    minute: (spec.minute || '').trim(),
+                    hour: (spec.hour || '').trim(),
+                    dayOfMonth: (spec.day_of_month || spec.dayOfMonth || '').trim(),
+                    month: (spec.month || '').trim(),
+                    dayOfWeek: (spec.day_of_week || spec.dayOfWeek || '').trim()
+                };
+
+                // Validate each individual field against UNIX cron regex patterns
+                const subPattern = /^(\*|\d+|\*\/[1-9]\d*|\d+-\d+|\d+(,\d+)*)$/;
+
+                function validateToken(token, min, max, name) {
+                    if (!token) return `${name} cannot be empty.`;
+                    
+                    // Simple token validation
+                    const parts = token.split(',');
+                    for (const p of parts) {
+                        const trimmed = p.trim();
+                        if (trimmed === '*') continue;
+
+                        // Step: */n
+                        if (trimmed.startsWith('*/')) {
+                            const step = parseInt(trimmed.substring(2), 10);
+                            if (isNaN(step) || step <= 0 || step > max) {
+                                return `Invalid step ${trimmed} in ${name}.`;
+                            }
+                            continue;
+                        }
+
+                        // Range: a-b
+                        if (trimmed.includes('-')) {
+                            const [startStr, endStr] = trimmed.split('-');
+                            const start = parseInt(startStr, 10);
+                            const end = parseInt(endStr, 10);
+                            if (isNaN(start) || isNaN(end) || start < min || end > max || start > end) {
+                                return `Invalid range ${trimmed} in ${name} (allowed ${min}-${max}).`;
+                            }
+                            continue;
+                        }
+
+                        // Exact number
+                        const num = parseInt(trimmed, 10);
+                        if (isNaN(num) || num < min || num > max) {
+                            return `Value ${trimmed} in ${name} out of bounds (${min}-${max}).`;
+                        }
+                    }
+                    return null;
+                }
+
+                // Verify 5 fields
+                const minErr = validateToken(clean.minute, 0, 59, 'Minute');
+                if (minErr) return { valid: false, error: minErr };
+
+                const hrErr = validateToken(clean.hour, 0, 23, 'Hour');
+                if (hrErr) return { valid: false, error: hrErr };
+
+                const domErr = validateToken(clean.dayOfMonth, 1, 31, 'Day of Month');
+                if (domErr) return { valid: false, error: domErr };
+
+                const monErr = validateToken(clean.month, 1, 12, 'Month');
+                if (monErr) return { valid: false, error: monErr };
+
+                const dowErr = validateToken(clean.dayOfWeek, 0, 6, 'Day of Week');
+                if (dowErr) return { valid: false, error: dowErr };
+
+                // Build compiled expression
+                const expression = `${clean.minute} ${clean.hour} ${clean.dayOfMonth} ${clean.month} ${clean.dayOfWeek}`;
+
+                return {
+                    valid: true,
+                    expression: expression,
+                    fields: clean,
+                    explanation: spec.explanation || 'Standard UNIX Cron Schedule',
+                    frequency: spec.frequency || 'Custom Schedule'
+                };
+            }
+
+            /**
+             * Render Cron Result Card
+             */
+            function displayCronResult(compiled) {
+                state.currentCron = compiled;
+                dom.cronExpressionDisplay.textContent = compiled.expression;
+                dom.cronHumanExplanation.textContent = compiled.explanation;
+
+                dom.fieldMinute.textContent = compiled.fields.minute;
+                dom.fieldHour.textContent = compiled.fields.hour;
+                dom.fieldDom.textContent = compiled.fields.dayOfMonth;
+                dom.fieldMonth.textContent = compiled.fields.month;
+                dom.fieldDow.textContent = compiled.fields.dayOfWeek;
+
+                dom.cronResultCard.classList.remove('hidden');
+                dom.cronResultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            /**
+             * Main User Message Handler
+             */
+            async function handleUserMessage() {
+                const messageText = dom.userInput.value.trim();
+                if (!messageText) return;
+
+                if (!state.apiKey) {
+                    dom.noKeyOverlay.classList.remove('hidden');
+                    return;
+                }
+
+                // Add to UI
+                appendMessage('user', messageText);
+                dom.userInput.value = '';
+                dom.userInput.disabled = true;
+                dom.sendBtn.disabled = true;
+
+                // Add to internal conversation history
+                state.conversationHistory.push({
+                    role: 'user',
+                    parts: [{ text: messageText }]
+                });
+
+                appendLoadingIndicator();
+
+                try {
+                    const result = await callGeminiGroundingModel(state.conversationHistory);
+                    removeLoadingIndicator();
+
+                    if (!result || !result.status) {
+                        appendMessage('assistant', 'Sorry, I received an unexpected response format. Please try again.');
+                        return;
+                    }
+
+                    // Display assistant text in chat
+                    if (result.message) {
+                        appendMessage('assistant', result.message);
+                    }
+
+                    // If status is ready and spec is present, compile and validate through JS
+                    if (result.status === 'ready' && result.spec) {
+                        const compiled = validateAndCompileCronSpec(result.spec);
+                        if (compiled.valid) {
+                            displayCronResult(compiled);
+                        } else {
+                            console.warn('Cron spec validation error: ', compiled.error);
+                            appendMessage('assistant', `⚠️ Note: The generated schedule had a syntax validation issue: ${compiled.error}. Could you please clarify your desired schedule?`);
+                        }
+                    }
+
+                    // Record assistant response in conversation history
+                    state.conversationHistory.push({
+                        role: 'model',
+                        parts: [{ text: JSON.stringify(result) }]
+                    });
+
+                } catch (err) {
+                    removeLoadingIndicator();
+                    console.error('Error calling Gemini model:', err);
+                    appendMessage('assistant', `⚠️ Error calling Gemini API: ${err.message || 'Please check your API key and network connection.'}`);
+                } finally {
+                    dom.userInput.disabled = false;
+                    dom.sendBtn.disabled = false;
+                    dom.userInput.focus();
+                }
+            }
+
+            /**
+             * Call Gemini Grounding Model with exponential backoff
+             */
+            async function callGeminiGroundingModel(contents) {
+                const url = `${GEMINI_API_ENDPOINT}?key=${encodeURIComponent(state.apiKey)}`;
+
+                const payload = {
+                    contents: contents,
+                    systemInstruction: {
+                        parts: [{ text: SYSTEM_PROMPT }]
+                    },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        temperature: 0.1
+                    }
+                };
+
+                let lastError = null;
+                const maxRetries = 3;
+
+                for (let attempt = 0; attempt < maxRetries; attempt++) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errBody = await response.json().catch(() => ({}));
+                            const errMsg = errBody.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+                            
+                            // Check 429 rate limit
+                            if (response.status === 429 && attempt < maxRetries - 1) {
+                                const delay = Math.pow(2, attempt) * 1000;
+                                await new Promise(r => setTimeout(r, delay));
+                                continue;
+                            }
+                            throw new Error(errMsg);
+                        }
+
+                        const data = await response.json();
+                        const candidate = data.candidates?.[0];
+                        const text = candidate?.content?.parts?.[0]?.text;
+
+                        if (!text) {
+                            throw new Error('No content returned from Gemini model.');
+                        }
+
+                        // Parse structured JSON
+                        const parsed = JSON.parse(text);
+                        return parsed;
+
+                    } catch (e) {
+                        lastError = e;
+                        if (attempt === maxRetries - 1) {
+                            throw lastError;
+                        }
+                        const delay = Math.pow(2, attempt) * 800;
+                        await new Promise(r => setTimeout(r, delay));
+                    }
+                }
+
+                throw lastError;
+            }
+
+            // Bootstrap
+            document.addEventListener('DOMContentLoaded', init);
+        })();
+    </script>
+</body>
+</html>

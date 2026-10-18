@@ -46,6 +46,7 @@ skip_conversion: true
 - [gcal_converter.html](gcal_converter.html)
 - [clubciclista.html](clubciclista.html)
 - [around.html](around.html)
+- [lang2cron.html](lang2cron.html)
 
 **Security Notes:**
 - ✅ Using prebuilt CSS file (NOT the Play CDN `cdn.tailwindcss.com`)
@@ -188,6 +189,8 @@ curl -s "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" | 
 - [test_translate.html](test_translate.html) - Inter font (400, 600, 700 weights)
 - [qr_generator.html](qr_generator.html) - Inter font (300, 400, 500, 600, 700 weights)
 - [clubciclista.html](clubciclista.html) - Inter font (300-900 weights)
+- [around.html](around.html) - Inter font (400, 500, 600, 700 weights)
+- [lang2cron.html](lang2cron.html) - Inter font (400, 500, 600, 700 weights)
 
 **Security Notes:**
 - ⚠️ **No SRI hash** - This is correct per AGENTS.md guidelines
@@ -233,7 +236,10 @@ curl -s "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" | 
 
 | HTML File | Tailwind CSS | Lucide Icons | Chart.js | QRCode.js | Google Fonts | Google Translate |
 |-----------|--------------|--------------|----------|-----------|--------------|------------------|
+| **around.html** | ✅ | - | - | - | ✅ | - |
+| **lang2cron.html** | ✅ | - | - | - | ✅ | - |
 | **artemis_launch_counter.html** | - | - | - | - | - | - |
+| **clubciclista.html** | ✅ | ✅ | - | - | ✅ | ✅ |
 | **gcal_converter.html** | ✅ | - | - | - | - | - |
 | **image_comparison.html** | - | ✅ | - | - | - | - |
 | **index.html** | - | - | - | - | - | - |
@@ -242,7 +248,6 @@ curl -s "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" | 
 | **secure_secrets_gs.html** | ✅ | - | ✅ | - | - | - |
 | **spaceinvaders.html** | - | - | - | - | - | - |
 | **test_translate.html** | - | - | - | - | ✅ | ✅ |
-| **clubciclista.html** | ✅ | ✅ | - | - | ✅ | ✅ |
 
 **Files with no CDN dependencies:** 3 (artemis_launch_counter.html, index.html, spaceinvaders.html)
 
