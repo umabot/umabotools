@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Date Time Parser</title>
+  <link rel="stylesheet" href="assets/css/datetimeparser.css">
+  <style>
+    /* Ultra-lean scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.8);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-teal-500 selection:text-slate-950 flex flex-col justify-between p-2.5 sm:p-4">
+
+  <!-- Compact Toast Notification -->
+  <div id="toast" class="fixed top-3 right-3 z-50 flex items-center gap-2 bg-slate-900 border border-teal-500/60 text-teal-300 text-xs font-mono px-3 py-1.5 rounded-lg shadow-xl transition-all duration-150 transform translate-y-[-150%] opacity-0 pointer-events-none">
+    <svg class="w-3.5 h-3.5 text-teal-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span id="toast-message">Copied</span>
+  </div>
+
+  <div class="max-w-5xl w-full mx-auto space-y-2.5">
+
+    <!-- 1. Compact Top Bar -->
+    <header class="flex items-center justify-between gap-2 pb-1 border-b border-slate-800/80">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center font-mono font-bold text-xs">
+          ⏱
+        </div>
+        <h1 class="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+          Date Time Parser
+          <span class="text-[10px] font-normal text-slate-400 bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded font-mono">UTC default</span>
+        </h1>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="btn-now" class="px-2.5 py-1 rounded-md bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition active:scale-95 flex items-center gap-1 shadow-sm">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Current Instant (Now)
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. Lean Input & Wall Clock Lock Bar -->
+    <section class="bg-slate-900/90 border border-slate-800/90 rounded-xl p-2.5 shadow-sm space-y-2">
+      <!-- String parser input line -->
+      <div class="flex gap-1.5">
+        <input id="string-input" type="text" 
+               placeholder="Instant String Parser: paste date, ISO, Unix epoch, or RFC (unspecified zone assumes Zulu/UTC)..." 
+               class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition">
+        <button id="btn-parse" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition shrink-0 active:scale-95">
+          Parse
+        </button>
+      </div>
+
+      <!-- Synchronized Date, Time, Zone Adjuster -->
+      <div class="grid grid-cols-2 sm:grid-cols-12 gap-2 pt-1 border-t border-slate-800/60 items-center text-xs">
+        
+        <!-- Date field -->
+        <div class="sm:col-span-3 flex items-center gap-1.5">
+          <span class="text-[11px] text-slate-400 font-mono shrink-0">Date:</span>
+          <input id="picker-date" type="date" class="w-full bg-slate-950 border border-slate-700 rounded-md px-2 py-1 text-xs font-mono text-slate-200 focus:outline-none focus:border-teal-500">
+        </div>
+
+        <!-- Time field -->
+        <div class="sm:col-span-3 flex items-center gap-1.5">
+          <span class="text-[11px] text-slate-400 font-mono shrink-0">Time:</span>
+          <input id="picker-time" type="time" step="1" class="w-full bg-slate-950 border border-slate-700 rounded-md px-2 py-1 text-xs font-mono text-slate-200 focus:outline-none focus:border-teal-500">
+        </div>
+
+        <!-- Timezone selection with locked wall time -->
+        <div class="col-span-2 sm:col-span-6 flex flex-wrap sm:flex-nowrap items-center gap-1.5">
+          <span class="text-[11px] text-slate-400 font-mono shrink-0">Zone:</span>
+          <div class="relative w-full">
+            <select id="tz-select" class="w-full bg-slate-950 border border-slate-700 rounded-md px-2 py-1 text-xs font-mono text-slate-200 focus:outline-none focus:border-teal-500 cursor-pointer appearance-none pr-6">
+              <!-- Dynamically populated (UTC first) -->
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center px-1.5 pointer-events-none text-slate-400">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+          <button id="btn-set-utc" title="Set to UTC" class="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-mono text-slate-300 font-semibold transition shrink-0">
+            UTC
+          </button>
+          <label class="flex items-center gap-1 text-[11px] text-teal-400 cursor-pointer select-none shrink-0" title="Keeps entered 13:00 wall clock the same when switching timezone">
+            <input id="chk-keep-wall" type="checkbox" checked class="rounded border-slate-700 bg-slate-950 text-teal-500 focus:ring-0">
+            <span>Lock time</span>
+          </label>
+        </div>
+
+      </div>
+
+      <!-- Mini Info Strip -->
+      <div class="flex flex-wrap items-center justify-between gap-1.5 text-[11px] font-mono text-slate-400 bg-slate-950/60 px-2.5 py-1 rounded-md border border-slate-800/60">
+        <div class="flex items-center gap-2">
+          <span>Active: <b id="active-offset-pill" class="text-teal-300">UTC+00:00 (Zulu)</b></span>
+          <span id="active-dst-pill" class="text-slate-400">No DST</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span>Epoch: <span id="active-epoch-pill" class="text-slate-300">0s</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Lean Relative Time Shift & Scheduling -->
+    <section class="bg-slate-900/90 border border-slate-800/90 rounded-xl p-2.5 shadow-sm space-y-1.5">
+      <div class="flex flex-wrap items-center justify-between gap-1">
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-teal-400 font-mono flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Relative Time Shift & Scheduling
+        </span>
+        <span id="relative-summary-badge" class="text-[10px] font-mono text-slate-400">
+          Viewing current instant
+        </span>
+      </div>
+
+      <!-- Single-line Quick & Custom Shift controls -->
+      <div class="flex flex-wrap items-center gap-1 text-xs font-mono">
+        <button data-rel-min="5" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">+5m</button>
+        <button data-rel-min="15" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">+15m</button>
+        <button data-rel-min="120" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">+2h</button>
+        <button data-rel-min="360" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">+6h</button>
+        <button data-rel-min="1440" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">+1d</button>
+        <button data-rel-min="7200" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">+5d</button>
+        <span class="text-slate-600 px-0.5">|</span>
+        <button data-rel-min="-5" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 transition">-5m</button>
+        <button data-rel-min="-15" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 transition">-15m</button>
+        <button data-rel-min="-120" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 transition">-2h</button>
+        <button data-rel-min="-360" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 transition">-6h</button>
+        <button data-rel-min="-1440" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 transition">-1d</button>
+        <button data-rel-min="-7200" class="quick-shift-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 transition">-5d</button>
+        <span class="text-slate-600 px-0.5">|</span>
+        <!-- Inline Custom Stepper -->
+        <div class="inline-flex items-center gap-1">
+          <select id="shift-direction" class="bg-slate-950 border border-slate-700 rounded px-1 py-0.5 text-xs text-slate-200">
+            <option value="1">+</option>
+            <option value="-1">-</option>
+          </select>
+          <input id="shift-amount" type="number" min="1" max="999" value="2" class="w-10 bg-slate-950 border border-slate-700 rounded px-1 py-0.5 font-mono text-xs text-slate-200 text-center">
+          <select id="shift-unit" class="bg-slate-950 border border-slate-700 rounded px-1 py-0.5 text-xs text-slate-200">
+            <option value="minutes">m</option>
+            <option value="hours" selected>h</option>
+            <option value="days">d</option>
+          </select>
+          <button id="btn-apply-shift" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-teal-500/20 text-teal-300 border border-slate-700 hover:border-teal-500/50 text-xs font-semibold transition active:scale-95">
+            Shift
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Lean & Compact "Copy formats" Grid -->
+    <section class="space-y-1.5">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+          Copy formats
+        </h2>
+        <span class="text-[10px] text-slate-500 font-mono">Click value or copy button</span>
+      </div>
+
+      <!-- Dual column high-density format list -->
+      <div id="format-list" class="grid grid-cols-1 md:grid-cols-2 gap-1.5">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="pt-3 pb-1 text-center text-[10px] text-slate-600 font-mono">
+    Date Time Parser • Zero Runtime Dependencies • Local Client-Side
+  </footer>
+
+  <script>
+    /* =========================================================================
+       CORE STATE & ENGINE
+       ========================================================================= */
+
+    const state = {
+      currentEpochMs: Date.now(),
+      timeZone: 'UTC',
+      keepWallClockOnTzChange: true
+    };
+
+    const FALLBACK_TIMEZONES = [
+      'UTC',
+      'Africa/Cairo', 'Africa/Johannesburg', 'Africa/Lagos', 'Africa/Nairobi',
+      'America/Anchorage', 'America/Argentina/Buenos_Aires', 'America/Bogota',
+      'America/Chicago', 'America/Denver', 'America/Halifax', 'America/Los_Angeles',
+      'America/Mexico_City', 'America/New_York', 'America/Phoenix', 'America/Santiago',
+      'America/Sao_Paulo', 'America/Toronto', 'America/Vancouver',
+      'Asia/Bangkok', 'Asia/Dubai', 'Asia/Hong_Kong', 'Asia/Jakarta',
+      'Asia/Jerusalem', 'Asia/Kolkata', 'Asia/Seoul', 'Asia/Shanghai',
+      'Asia/Singapore', 'Asia/Taipei', 'Asia/Tokyo',
+      'Atlantic/Reykjavik',
+      'Australia/Adelaide', 'Australia/Brisbane', 'Australia/Darwin',
+      'Australia/Melbourne', 'Australia/Perth', 'Australia/Sydney',
+      'Europe/Amsterdam', 'Europe/Athens', 'Europe/Berlin', 'Europe/Brussels',
+      'Europe/Dublin', 'Europe/Helsinki', 'Europe/Istanbul', 'Europe/Lisbon',
+      'Europe/London', 'Europe/Madrid', 'Europe/Paris', 'Europe/Rome',
+      'Europe/Stockholm', 'Europe/Vienna', 'Europe/Warsaw', 'Europe/Zurich',
+      'Pacific/Auckland', 'Pacific/Honolulu', 'Pacific/Suva'
+    ];
+
+    function getWallClockParts(epochMs, timeZone) {
+      const date = new Date(epochMs);
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23',
+        weekday: 'short'
+      });
+      const parts = formatter.formatToParts(date);
+      const p = {};
+      for (const item of parts) p[item.type] = item.value;
+      return {
+        year: parseInt(p.year, 10),
+        month: parseInt(p.month, 10),
+        day: parseInt(p.day, 10),
+        hour: parseInt(p.hour, 10),
+        minute: parseInt(p.minute, 10),
+        second: parseInt(p.second, 10),
+        weekday: p.weekday
+      };
+    }
+
+    function getOffsetMinutes(epochMs, timeZone) {
+      const parts = getWallClockParts(epochMs, timeZone);
+      const wallAsUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+      const baseEpochSec = Math.floor(epochMs / 1000) * 1000;
+      return Math.round((wallAsUtc - baseEpochSec) / 60000);
+    }
+
+    function formatOffset(offsetMinutes, useZuluForZero = false) {
+      if (useZuluForZero && offsetMinutes === 0) return 'Z';
+      const sign = offsetMinutes >= 0 ? '+' : '-';
+      const abs = Math.abs(offsetMinutes);
+      const hours = String(Math.floor(abs / 60)).padStart(2, '0');
+      const minutes = String(abs % 60).padStart(2, '0');
+      return `${sign}${hours}:${minutes}`;
+    }
+
+    function getDstAnalysis(epochMs, timeZone) {
+      if (timeZone === 'UTC') return { isDst: false, observesDst: false, shiftMinutes: 0 };
+      const parts = getWallClockParts(epochMs, timeZone);
+      const year = parts.year;
+      const janOffset = getOffsetMinutes(Date.UTC(year, 0, 15), timeZone);
+      const julOffset = getOffsetMinutes(Date.UTC(year, 6, 15), timeZone);
+      const curOffset = getOffsetMinutes(epochMs, timeZone);
+
+      if (janOffset === julOffset) return { isDst: false, observesDst: false, shiftMinutes: 0 };
+      const standardOffset = Math.min(janOffset, julOffset);
+      return {
+        isDst: curOffset > standardOffset,
+        observesDst: true,
+        shiftMinutes: curOffset - standardOffset
+      };
+    }
+
+    function wallClockToEpoch(year, month, day, hour, minute, second, tz) {
+      const guessUtc = Date.UTC(year, month - 1, day, hour, minute, second);
+      const offset1 = getOffsetMinutes(guessUtc, tz);
+      let resolved = guessUtc - offset1 * 60000;
+      const offset2 = getOffsetMinutes(resolved, tz);
+      if (offset2 !== offset1) {
+        resolved = guessUtc - offset2 * 60000;
+      }
+      return resolved;
+    }
+
+    function generateFormats(epochMs, tz) {
+      const parts = getWallClockParts(epochMs, tz);
+      const offsetMin = getOffsetMinutes(epochMs, tz);
+      const offsetStr = formatOffset(offsetMin);
+      const offsetCompact = offsetStr.replace(':', '');
+      const utcParts = getWallClockParts(epochMs, 'UTC');
+
+      const YYYY = String(parts.year);
+      const MM = String(parts.month).padStart(2, '0');
+      const DD = String(parts.day).padStart(2, '0');
+      const HH = String(parts.hour).padStart(2, '0');
+      const mm = String(parts.minute).padStart(2, '0');
+      const ss = String(parts.second).padStart(2, '0');
+
+      const uYYYY = String(utcParts.year);
+      const uMM = String(utcParts.month).padStart(2, '0');
+      const uDD = String(utcParts.day).padStart(2, '0');
+      const uHH = String(utcParts.hour).padStart(2, '0');
+      const umm = String(utcParts.minute).padStart(2, '0');
+      const uss = String(utcParts.second).padStart(2, '0');
+
+      const hour12 = parts.hour % 12 || 12;
+      const ampm = parts.hour >= 12 ? 'pm' : 'am';
+      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+      const diffSec = Math.round((epochMs - Date.now()) / 1000);
+      let relDesc = 'now';
+      if (Math.abs(diffSec) >= 10) {
+        const rtf = new Intl.RelativeTimeFormat('en-US', { numeric: 'auto' });
+        if (Math.abs(diffSec) < 3600) relDesc = rtf.format(Math.round(diffSec / 60), 'minute');
+        else if (Math.abs(diffSec) < 86400) relDesc = rtf.format(Math.round(diffSec / 3600), 'hour');
+        else relDesc = rtf.format(Math.round(diffSec / 86400), 'day');
+      }
+
+      return [
+        {
+          id: 'zulu',
+          name: 'Zulu (UTC)',
+          value: `${uYYYY}-${uMM}-${uDD}T${uHH}:${umm}:${uss}Z`,
+          badge: 'ISO'
+        },
+        {
+          id: 'iso-offset',
+          name: 'ISO w/ Offset',
+          value: `${YYYY}-${MM}-${DD}T${HH}:${mm}:${ss}${offsetStr}`,
+          badge: 'T+Offset'
+        },
+        {
+          id: 'compact-ops',
+          name: 'Compact 24h',
+          value: `${YYYY}-${MM}-${DD} ${HH}${mm}`,
+          badge: 'Logs'
+        },
+        {
+          id: 'standard-space',
+          name: 'Standard 24h',
+          value: `${YYYY}-${MM}-${DD} ${HH}:${mm}:${ss}`,
+          badge: 'Space'
+        },
+        {
+          id: 'sql-timestamptz',
+          name: 'Postgres SQL',
+          value: `${YYYY}-${MM}-${DD} ${HH}:${mm}:${ss}${offsetStr}`,
+          badge: 'SQL'
+        },
+        {
+          id: 'rfc-9557',
+          name: 'RFC 9557',
+          value: `${YYYY}-${MM}-${DD}T${HH}:${mm}:${ss}${offsetStr}[${tz}]`,
+          badge: 'IANA'
+        },
+        {
+          id: 'epoch-sec',
+          name: 'Unix Epoch (s)',
+          value: `${Math.floor(epochMs / 1000)}`,
+          badge: 'Sec'
+        },
+        {
+          id: 'epoch-ms',
+          name: 'Unix Epoch (ms)',
+          value: `${epochMs}`,
+          badge: 'Ms'
+        },
+        {
+          id: 'rfc-2822',
+          name: 'RFC 2822',
+          value: `${parts.weekday}, ${DD} ${monthNames[parts.month - 1]} ${YYYY} ${HH}:${mm}:${ss} ${offsetCompact}`,
+          badge: 'HTTP'
+        },
+        {
+          id: 'conversational',
+          name: 'Human / UI',
+          value: `${hour12}:${mm} ${ampm} on ${monthNames[parts.month - 1]} ${DD} (${relDesc})`,
+          badge: 'Human'
+        }
+      ];
+    }
+
+    /* =========================================================================
+       UI RENDERING & SYNC
+       ========================================================================= */
+
+    function updateUI() {
+      const parts = getWallClockParts(state.currentEpochMs, state.timeZone);
+      const offsetMin = getOffsetMinutes(state.currentEpochMs, state.timeZone);
+      const offsetStr = formatOffset(offsetMin);
+      const dst = getDstAnalysis(state.currentEpochMs, state.timeZone);
+
+      // 1. Sync picker values without stealing active focus
+      const activeEl = document.activeElement;
+      const dateEl = document.getElementById('picker-date');
+      const timeEl = document.getElementById('picker-time');
+
+      const dateVal = `${parts.year}-${String(parts.month).padStart(2,'0')}-${String(parts.day).padStart(2,'0')}`;
+      const timeVal = `${String(parts.hour).padStart(2,'0')}:${String(parts.minute).padStart(2,'0')}:${String(parts.second).padStart(2,'0')}`;
+
+      if (activeEl !== dateEl) dateEl.value = dateVal;
+      if (activeEl !== timeEl) timeEl.value = timeVal;
+
+      // 2. Active status bar
+      document.getElementById('active-offset-pill').textContent = `UTC${offsetStr} (${state.timeZone === 'UTC' ? 'Zulu' : state.timeZone})`;
+      
+      const dstPill = document.getElementById('active-dst-pill');
+      if (dst.isDst) {
+        dstPill.textContent = `☀️ DST (+${dst.shiftMinutes/60}h)`;
+        dstPill.className = 'text-amber-400 font-semibold';
+      } else if (dst.observesDst) {
+        dstPill.textContent = 'Std Time';
+        dstPill.className = 'text-teal-400/80';
+      } else {
+        dstPill.textContent = 'No DST';
+        dstPill.className = 'text-slate-500';
+      }
+
+      document.getElementById('active-epoch-pill').textContent = `${Math.floor(state.currentEpochMs / 1000)}s`;
+
+      // 3. Relative summary
+      const nowDiffMin = Math.round((state.currentEpochMs - Date.now()) / 60000);
+      const relSummary = document.getElementById('relative-summary-badge');
+      if (Math.abs(nowDiffMin) < 1) {
+        relSummary.textContent = 'Now';
+      } else if (nowDiffMin > 0) {
+        const h = (nowDiffMin / 60).toFixed(1);
+        relSummary.textContent = `+${nowDiffMin}m ahead (+${h}h from now)`;
+      } else {
+        const h = (Math.abs(nowDiffMin) / 60).toFixed(1);
+        relSummary.textContent = `-${Math.abs(nowDiffMin)}m ago (-${h}h in past)`;
+      }
+
+      // 4. Render lean "Copy formats"
+      renderFormatList();
+    }
+
+    function renderFormatList() {
+      const container = document.getElementById('format-list');
+      const formats = generateFormats(state.currentEpochMs, state.timeZone);
+
+      container.innerHTML = '';
+
+      formats.forEach(f => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-2 p-1.5 px-2.5 rounded-lg bg-slate-900 border border-slate-800/80 hover:border-teal-500/50 group transition cursor-pointer';
+        row.setAttribute('data-copy-val', f.value);
+        
+        row.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <span class="text-[11px] font-semibold text-slate-400 w-24 sm:w-28 shrink-0 truncate">${f.name}</span>
+            <code class="font-mono text-xs text-teal-300 truncate selection:bg-teal-500 selection:text-slate-950">${escapeHtml(f.value)}</code>
+          </div>
+          <button type="button" title="Copy value" aria-label="Copy value" class="copy-btn shrink-0 w-6 h-6 flex items-center justify-center rounded bg-slate-800 hover:bg-teal-500/20 text-slate-400 hover:text-teal-300 border border-slate-700/80 transition active:scale-90">
+            <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+          </button>
+        `;
+
+        // Click on entire row or copy button copies immediately
+        row.addEventListener('click', () => {
+          copyTextToClipboard(f.value);
+          const btn = row.querySelector('.copy-btn');
+          const original = btn.innerHTML;
+          btn.innerHTML = `<svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>`;
+          row.classList.add('border-teal-500');
+          setTimeout(() => {
+            btn.innerHTML = original;
+            row.classList.remove('border-teal-500');
+          }, 1200);
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    /* =========================================================================
+       PARSER LOGIC: DEFAULT TO ZULU (UTC)
+       ========================================================================= */
+
+    function parseInputString(str) {
+      const input = str.trim();
+      if (!input) return;
+
+      // 1. Pure Unix epoch numbers
+      if (/^\d{9,13}$/.test(input)) {
+        let num = parseInt(input, 10);
+        if (input.length <= 10) num *= 1000;
+        state.currentEpochMs = num;
+        updateUI();
+        showToast('Unix timestamp loaded');
+        return;
+      }
+
+      // 2. RFC 9557 format with zone tag: e.g. 2026-10-24T13:00:00+02:00[Europe/Paris]
+      const rfc9557Match = input.match(/^(.+?)\[([A-Za-z0-9_\/+-]+)\]$/);
+      if (rfc9557Match) {
+        const iso = rfc9557Match[1];
+        const tz = rfc9557Match[2];
+        const parsed = Date.parse(iso);
+        if (!isNaN(parsed)) {
+          state.currentEpochMs = parsed;
+          setTimeZone(tz, false);
+          updateUI();
+          showToast(`Loaded zone [${tz}]`);
+          return;
+        }
+      }
+
+      // 3. Explicit offset or Zulu in string (+HH:MM, -HH:MM, or Z)
+      const hasExplicitZone = /[zZ]$|[+-]\d{2}(:?\d{2})?$/.test(input);
+      if (hasExplicitZone) {
+        const parsed = Date.parse(input);
+        if (!isNaN(parsed)) {
+          state.currentEpochMs = parsed;
+          updateUI();
+          showToast('Parsed ISO with offset');
+          return;
+        }
+      }
+
+      // 4. NO TIMEZONE SPECIFIED: Default directly to Zulu (UTC)
+      const datePartsMatch = input.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[T\s](\d{1,2}):?(\d{2})(?::?(\d{2}))?)?/);
+      if (datePartsMatch) {
+        const y = parseInt(datePartsMatch[1], 10);
+        const m = parseInt(datePartsMatch[2], 10);
+        const d = parseInt(datePartsMatch[3], 10);
+        const hr = parseInt(datePartsMatch[4] || '0', 10);
+        const min = parseInt(datePartsMatch[5] || '0', 10);
+        const sec = parseInt(datePartsMatch[6] || '0', 10);
+
+        state.currentEpochMs = Date.UTC(y, m - 1, d, hr, min, sec);
+        setTimeZone('UTC', false);
+        updateUI();
+        showToast('No zone specified: Assumed Zulu Time (UTC)');
+        return;
+      }
+
+      // Fallback
+      const attemptAsZulu = Date.parse(input.endsWith('Z') ? input : input + 'Z');
+      if (!isNaN(attemptAsZulu)) {
+        state.currentEpochMs = attemptAsZulu;
+        setTimeZone('UTC', false);
+        updateUI();
+        showToast('Interpreted as Zulu Time (UTC)');
+        return;
+      }
+
+      showToast('Unrecognized format');
+    }
+
+    function setTimeZone(newTz, keepWallClock) {
+      if (newTz === state.timeZone) return;
+
+      if (keepWallClock) {
+        const currentParts = getWallClockParts(state.currentEpochMs, state.timeZone);
+        state.currentEpochMs = wallClockToEpoch(
+          currentParts.year,
+          currentParts.month,
+          currentParts.day,
+          currentParts.hour,
+          currentParts.minute,
+          currentParts.second,
+          newTz
+        );
+      }
+
+      state.timeZone = newTz;
+      const select = document.getElementById('tz-select');
+      select.value = newTz;
+      updateUI();
+    }
+
+    /* =========================================================================
+       INIT & EVENT LISTENERS
+       ========================================================================= */
+
+    function initTimezones() {
+      let zones = [];
+      try {
+        if (typeof Intl.supportedValuesOf === 'function') {
+          zones = Intl.supportedValuesOf('timeZone');
+        }
+      } catch (e) {}
+
+      if (!zones || zones.length === 0) zones = FALLBACK_TIMEZONES;
+      if (!zones.includes('UTC')) zones.unshift('UTC');
+
+      const select = document.getElementById('tz-select');
+      select.innerHTML = '';
+
+      zones.forEach(tz => {
+        const opt = document.createElement('option');
+        opt.value = tz;
+        opt.textContent = tz === 'UTC' ? 'UTC (Zulu Time)' : tz.replace(/_/g, ' ');
+        if (tz === state.timeZone) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function setupEventListeners() {
+      // 1. Parser trigger
+      const parseBtn = document.getElementById('btn-parse');
+      const parseInput = document.getElementById('string-input');
+
+      parseBtn.addEventListener('click', () => parseInputString(parseInput.value));
+      parseInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') parseInputString(parseInput.value);
+      });
+
+      // 2. Manual date/time changes
+      function onManualPickerChange() {
+        const dVal = document.getElementById('picker-date').value;
+        const tVal = document.getElementById('picker-time').value || '00:00:00';
+        if (!dVal) return;
+
+        const [y, m, d] = dVal.split('-').map(Number);
+        const [hr, min, sec] = tVal.split(':').map(Number);
+
+        state.currentEpochMs = wallClockToEpoch(y, m, d, hr, min || 0, sec || 0, state.timeZone);
+        updateUI();
+      }
+
+      document.getElementById('picker-date').addEventListener('input', onManualPickerChange);
+      document.getElementById('picker-time').addEventListener('input', onManualPickerChange);
+
+      // 3. Time zone switch with lock wall time
+      const tzSelect = document.getElementById('tz-select');
+      const chkKeepWall = document.getElementById('chk-keep-wall');
+
+      tzSelect.addEventListener('change', (e) => {
+        setTimeZone(e.target.value, chkKeepWall.checked);
+        showToast(chkKeepWall.checked ? `Zone: ${e.target.value} (time locked)` : `Zone shifted to ${e.target.value}`);
+      });
+
+      document.getElementById('btn-set-utc').addEventListener('click', () => {
+        setTimeZone('UTC', chkKeepWall.checked);
+        showToast('Zone set to UTC (Zulu)');
+      });
+
+      // 4. Current Instant (Now)
+      document.getElementById('btn-now').addEventListener('click', () => {
+        state.currentEpochMs = Date.now();
+        updateUI();
+        showToast('Synchronized to Now');
+      });
+
+      // 5. Quick Shift buttons
+      document.querySelectorAll('.quick-shift-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const addMin = parseInt(btn.getAttribute('data-rel-min'), 10);
+          state.currentEpochMs += addMin * 60 * 1000;
+          updateUI();
+          showToast(`Shifted ${btn.textContent.trim()}`);
+        });
+      });
+
+      // 6. Custom Shift control (inline)
+      function applyCustomShift() {
+        const dir = parseInt(document.getElementById('shift-direction').value, 10);
+        const amount = Math.max(1, parseInt(document.getElementById('shift-amount').value, 10) || 1);
+        const unit = document.getElementById('shift-unit').value;
+
+        let multiplier = 60 * 1000;
+        if (unit === 'hours') multiplier = 3600 * 1000;
+        if (unit === 'days') multiplier = 86400 * 1000;
+
+        state.currentEpochMs += dir * amount * multiplier;
+        updateUI();
+        const sign = dir >= 0 ? '+' : '-';
+        showToast(`Shifted ${sign}${amount}${unit === 'minutes' ? 'm' : unit === 'hours' ? 'h' : 'd'}`);
+      }
+
+      document.getElementById('btn-apply-shift').addEventListener('click', applyCustomShift);
+      document.getElementById('shift-amount').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') applyCustomShift();
+      });
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.textContent = message;
+      toast.classList.remove('translate-y-[-150%]', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-[-150%]', 'opacity-0');
+      }, 1600);
+    }
+
+    function copyTextToClipboard(text) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast(`Copied: "${text.length > 22 ? text.slice(0, 22) + '…' : text}"`);
+      } catch (err) {
+        showToast('Unable to copy');
+      }
+      document.body.removeChild(textArea);
+    }
+
+    window.onload = function () {
+      initTimezones();
+      setupEventListeners();
+      updateUI();
+    };
+  </script>
+</body>
+</html>
