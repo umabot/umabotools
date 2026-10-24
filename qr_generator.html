@@ -16,10 +16,37 @@
     <!-- QRCode.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
     <style>
-        
+        :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+        .dark-theme, [data-theme="dark"] {
+            --bg-page: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .dark-theme .bg-white {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+        .dark-theme .text-slate-900 { color: #f8fafc !important; }
+        .dark-theme .text-slate-600 { color: #94a3b8 !important; }
+        .dark-theme input, .dark-theme select, .dark-theme textarea {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
         }
 
         .qr-container canvas, .qr-container img {
@@ -46,8 +73,26 @@
         }
     </style>
 </head>
-<body class="min-h-screen py-8 px-4">
-    <div class="max-w-4xl mx-auto">
+<body class="min-h-screen py-6 px-4 flex flex-col justify-between">
+    <header class="max-w-4xl w-full mx-auto mb-6 p-3 bg-white shadow-sm rounded-xl flex items-center justify-between flex-wrap gap-2 border border-slate-200">
+        <div class="flex items-center space-x-2">
+            <a href="index.html" class="flex items-center space-x-2 text-blue-600 font-bold hover:underline" title="Back to Umabot Tools">
+                <span class="text-xl">📱</span>
+                <span class="text-base sm:text-lg">QR Code Studio</span>
+            </a>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium border border-blue-200">Generator</span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button id="themeToggleBtn" type="button" class="p-1.5 px-2.5 rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:bg-slate-100 transition" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+                <span id="themeIcon">🌙</span>
+            </button>
+            <a href="dist/qr_generator/README.html" class="p-1.5 px-3 rounded-lg border border-slate-300 bg-slate-50 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition hidden sm:inline-flex items-center space-x-1" title="View Documentation">
+                📖 Docs
+            </a>
+        </div>
+    </header>
+
+    <div class="max-w-4xl w-full mx-auto flex-1">
         <!-- Header -->
         <div class="text-center mb-10">
             <h1 class="text-3xl font-bold text-slate-900 mb-2">QR Code Studio</h1>
@@ -449,6 +494,41 @@
                 passwordInput.placeholder = 'Enter password';
             }
         }
+
+        // Theme toggle logic
+        (function() {
+            const current = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            function applyTheme(t) {
+                const icon = document.getElementById('themeIcon');
+                const btn = document.getElementById('themeToggleBtn');
+                if (t === 'dark') {
+                    document.documentElement.classList.add('dark-theme');
+                    document.body.classList.add('dark-theme');
+                    if (icon) icon.textContent = '☀️';
+                    if (btn) btn.title = 'Switch to Light Mode';
+                } else {
+                    document.documentElement.classList.remove('dark-theme');
+                    document.body.classList.remove('dark-theme');
+                    if (icon) icon.textContent = '🌙';
+                    if (btn) btn.title = 'Switch to Dark Mode';
+                }
+            }
+            applyTheme(current);
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    const isDark = document.body.classList.contains('dark-theme');
+                    const next = isDark ? 'light' : 'dark';
+                    localStorage.setItem('theme', next);
+                    applyTheme(next);
+                });
+            }
+        })();
     </script>
+
+    <footer class="max-w-4xl w-full mx-auto mt-8 pt-4 pb-2 border-t border-slate-300 text-center text-xs text-slate-500 space-y-1">
+        <p><strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">innovumabot.com</a> &bull; MIT License</p>
+        <p class="opacity-75">All QR code generation runs locally in your browser. Your URLs, text inputs, and contact information are processed 100% client-side and never transmitted or saved to external servers.</p>
+    </footer>
 </body>
 </html>

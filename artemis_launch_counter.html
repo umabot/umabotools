@@ -368,9 +368,42 @@
             .news-controls { align-items: flex-start; }
             #news-status { width: 100%; }
         }
+        .light-theme {
+            --dark-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-light: #0f172a;
+        }
+        .light-theme footer {
+            background-color: #f1f5f9;
+            color: #475569;
+            border-top: 1px solid #cbd5e1;
+        }
+        .light-theme .news-card {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            color: #1e293b;
+        }
     </style>
 </head>
 <body>
+
+    <nav class="umabot-top-bar" style="width: 100%; background: #0b1120; border-bottom: 1px solid #1e293b; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 50; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="index.html" style="color: #60a5fa; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px;" title="Back to Umabot Tools">
+                <span style="font-size: 1.25rem;">🚀</span>
+                <span style="font-size: 1.05rem;">Artemis II Launch</span>
+            </a>
+            <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: rgba(59, 130, 246, 0.15); border: 1px solid #2563eb; color: #93c5fd;">Mission Tracker</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="themeToggleBtn" type="button" style="background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+                <span id="themeIcon">☀️</span>
+            </button>
+            <a href="dist/artemis_launch_counter/README.html" style="background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; text-decoration: none;" title="View Documentation">
+                📖 Docs
+            </a>
+        </div>
+    </nav>
 
     <header id="hero-header">
         <h1>Artemis II Launch</h1>
@@ -409,6 +442,14 @@
     </main>
 
     <footer>
+        <div style="margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <p style="font-weight: 600; margin-bottom: 4px;">
+                <strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer" style="color: #60a5fa;">innovumabot.com</a> &bull; MIT License
+            </p>
+            <p style="font-size: 0.75rem; opacity: 0.8; margin-top: 2px;">
+                All countdown timers and timezone calculations run locally in your browser. Mission data and imagery are sourced directly from NASA with zero user tracking.
+            </p>
+        </div>
         <p>&copy; 2026 Artemis Mission Tracker. Browse latest updates or try your luck for a random briefing.</p>
         <p>Source Data: <a href="https://www.nasa.gov/mission/artemis-ii/" target="_blank">NASA Artemis II Official Page</a></p>
         <span class="photo-credit" id="footer-photo-credit">
@@ -969,6 +1010,34 @@
             populateCityList();
             setInterval(updateCountdown, 1000);
             updateCountdown();
+
+            // Theme toggle logic
+            const current = localStorage.getItem('theme') || 'dark';
+            function applyTheme(t) {
+                const icon = document.getElementById('themeIcon');
+                const btn = document.getElementById('themeToggleBtn');
+                if (t === 'light') {
+                    document.documentElement.classList.add('light-theme');
+                    document.body.classList.add('light-theme');
+                    if (icon) icon.textContent = '🌙';
+                    if (btn) btn.title = 'Switch to Dark Mode';
+                } else {
+                    document.documentElement.classList.remove('light-theme');
+                    document.body.classList.remove('light-theme');
+                    if (icon) icon.textContent = '☀️';
+                    if (btn) btn.title = 'Switch to Light Mode';
+                }
+            }
+            applyTheme(current);
+            const themeBtn = document.getElementById('themeToggleBtn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', () => {
+                    const isLight = document.body.classList.contains('light-theme');
+                    const next = isLight ? 'dark' : 'light';
+                    localStorage.setItem('theme', next);
+                    applyTheme(next);
+                });
+            }
         };
     </script>
 </body>

@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Date Time Parser</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/images/InnovUmabot_Logo_favicon.png">
+  <link rel="shortcut icon" type="image/png" href="./assets/images/InnovUmabot_Logo_favicon.png">
+  <link rel="apple-touch-icon" href="./assets/images/InnovUmabot_Logo_favicon.png">
   <link rel="stylesheet" href="assets/css/datetimeparser.css">
   <style>
     /* Ultra-lean scrollbar */
@@ -16,6 +19,23 @@
       filter: invert(0.8);
       cursor: pointer;
     }
+    .light-theme {
+      background-color: #f8fafc !important;
+      color: #0f172a !important;
+    }
+    .light-theme .bg-slate-950 { background-color: #f8fafc !important; }
+    .light-theme .bg-slate-900 { background-color: #ffffff !important; }
+    .light-theme .bg-slate-900\/90 { background-color: rgba(255, 255, 255, 0.95) !important; }
+    .light-theme .text-white { color: #0f172a !important; }
+    .light-theme .text-slate-100 { color: #0f172a !important; }
+    .light-theme .text-slate-200 { color: #1e293b !important; }
+    .light-theme .text-slate-300 { color: #334155 !important; }
+    .light-theme .text-slate-400 { color: #64748b !important; }
+    .light-theme .border-slate-800,
+    .light-theme .border-slate-800\/80,
+    .light-theme .border-slate-800\/90 { border-color: #e2e8f0 !important; }
+    .light-theme .border-slate-700,
+    .light-theme .border-slate-700\/80 { border-color: #cbd5e1 !important; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-teal-500 selection:text-slate-950 flex flex-col justify-between p-2.5 sm:p-4">
@@ -30,23 +50,31 @@
 
   <div class="max-w-5xl w-full mx-auto space-y-2.5">
 
-    <!-- 1. Compact Top Bar -->
-    <header class="flex items-center justify-between gap-2 pb-1 border-b border-slate-800/80">
+    <!-- 1. Standard Top Bar -->
+    <header class="flex flex-wrap items-center justify-between gap-2 pb-2 mb-1 border-b border-slate-800/80">
       <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center font-mono font-bold text-xs">
-          ⏱
-        </div>
-        <h1 class="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-          Date Time Parser
-          <span class="text-[10px] font-normal text-slate-400 bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded font-mono">UTC default</span>
-        </h1>
+        <a href="index.html" class="flex items-center gap-2 text-inherit no-underline hover:opacity-80 transition" title="Back to Umabot Tools">
+          <div class="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center font-mono font-bold text-xs">
+            ⏱
+          </div>
+          <span class="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+            Date Time Parser
+            <span class="text-[10px] font-normal text-slate-400 bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded font-mono">UTC default</span>
+          </span>
+        </a>
       </div>
 
       <div class="flex items-center gap-2">
         <button id="btn-now" class="px-2.5 py-1 rounded-md bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition active:scale-95 flex items-center gap-1 shadow-sm">
           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          Current Instant (Now)
+          Now
         </button>
+        <button id="themeToggleBtn" class="p-1 px-2 rounded-md border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs text-slate-300 transition flex items-center justify-center" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+          <span id="themeIcon">☀️</span>
+        </button>
+        <a href="dist/datetimeparser/README.html" class="px-2.5 py-1 rounded-md border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold no-underline transition hidden sm:inline-flex items-center space-x-1" title="View Documentation">
+          📖 Docs
+        </a>
       </div>
     </header>
 
@@ -176,8 +204,9 @@
 
   </div>
 
-  <footer class="pt-3 pb-1 text-center text-[10px] text-slate-600 font-mono">
-    Date Time Parser • Zero Runtime Dependencies • Local Client-Side
+  <footer class="mt-4 pt-4 pb-2 border-t border-slate-800/80 text-center text-xs text-slate-500 space-y-1">
+    <p><strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer" class="text-teal-400 hover:underline">innovumabot.com</a> &bull; MIT License</p>
+    <p class="text-[11px] opacity-75">Zero runtime dependencies. All timestamp parsing, date adjustments, and timezone calculations run 100% locally on the client-side. No data is tracked or transmitted.</p>
   </footer>
 
   <script>
@@ -712,7 +741,38 @@
       document.body.removeChild(textArea);
     }
 
+    // Theme toggle
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      function applyTheme(t) {
+        const icon = document.getElementById('themeIcon');
+        const btn = document.getElementById('themeToggleBtn');
+        if (t === 'light') {
+          document.documentElement.classList.add('light-theme');
+          document.body.classList.add('light-theme');
+          if (icon) icon.textContent = '🌙';
+          if (btn) btn.title = 'Switch to Dark Mode';
+        } else {
+          document.documentElement.classList.remove('light-theme');
+          document.body.classList.remove('light-theme');
+          if (icon) icon.textContent = '☀️';
+          if (btn) btn.title = 'Switch to Light Mode';
+        }
+      }
+      applyTheme(savedTheme);
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const isLight = document.body.classList.contains('light-theme');
+          const next = isLight ? 'dark' : 'light';
+          localStorage.setItem('theme', next);
+          applyTheme(next);
+        });
+      }
+    }
+
     window.onload = function () {
+      initTheme();
       initTimezones();
       setupEventListeners();
       updateUI();

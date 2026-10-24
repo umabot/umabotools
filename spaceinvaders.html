@@ -14,6 +14,12 @@
             --text-color: #ffffff;
         }
 
+        .light-theme, [data-theme="light"] {
+            --bg-color: #f1f5f9;
+            --accent-color: #0284c7;
+            --text-color: #0f172a;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -164,6 +170,24 @@
 </head>
 <body>
 
+    <header style="width: 100%; max-width: 600px; display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; margin-bottom: 6px; border-bottom: 1px solid #333; font-size: 13px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <a href="index.html" style="color: var(--accent-color); text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 6px;" title="Back to Umabot Tools">
+                <span>👾</span>
+                <span>SPACE INVADERS</span>
+            </a>
+            <span style="font-size: 10px; padding: 1px 6px; border: 1px solid var(--accent-color); border-radius: 4px; color: var(--accent-color);">ARCADE</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="themeToggleBtn" type="button" style="background: transparent; border: 1px solid #333; color: var(--text-color); padding: 2px 7px; border-radius: 4px; cursor: pointer; font-size: 11px;" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+                <span id="themeIcon">☀️</span>
+            </button>
+            <a href="dist/spaceinvaders/README.html" style="color: var(--text-color); text-decoration: none; border: 1px solid #333; padding: 2px 7px; border-radius: 4px; font-size: 11px;" title="View Documentation">
+                📖 DOCS
+            </a>
+        </div>
+    </header>
+
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
         
@@ -187,6 +211,15 @@
         </div>
         <div class="control-btn fire-btn" id="btnFire">🔥</div>
     </div>
+
+    <footer style="margin-top: 6px; max-width: 600px; width: 100%; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #333; padding-top: 4px;">
+        <p style="margin: 0 0 2px;">
+            <strong style="color: #bbb;">InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer" style="color: var(--accent-color); text-decoration: none;">innovumabot.com</a> &bull; MIT License
+        </p>
+        <p style="margin: 0; font-size: 10px; opacity: 0.8;">
+            Pure HTML5 Canvas arcade game running locally in your browser. Game state, controls, and high scores are processed on-device with zero tracking.
+        </p>
+    </footer>
 
     <script>
         /**
@@ -637,6 +670,36 @@
 
         // Initialize
         init();
+
+        // Theme toggle logic
+        (function() {
+            const current = localStorage.getItem('theme') || 'dark';
+            function applyTheme(t) {
+                const icon = document.getElementById('themeIcon');
+                const btn = document.getElementById('themeToggleBtn');
+                if (t === 'light') {
+                    document.documentElement.classList.add('light-theme');
+                    document.body.classList.add('light-theme');
+                    if (icon) icon.textContent = '🌙';
+                    if (btn) btn.title = 'Switch to Dark Mode';
+                } else {
+                    document.documentElement.classList.remove('light-theme');
+                    document.body.classList.remove('light-theme');
+                    if (icon) icon.textContent = '☀️';
+                    if (btn) btn.title = 'Switch to Light Mode';
+                }
+            }
+            applyTheme(current);
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    const isLight = document.body.classList.contains('light-theme');
+                    const next = isLight ? 'dark' : 'light';
+                    localStorage.setItem('theme', next);
+                    applyTheme(next);
+                });
+            }
+        })();
 
     </script>
 </body>

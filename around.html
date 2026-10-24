@@ -46,6 +46,33 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         }
 
+        .dark-theme, [data-theme="dark"] {
+            --bg-panel: rgba(30, 41, 59, 0.95);
+            --border-panel: rgba(51, 65, 85, 0.9);
+            --text-panel: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        .dark-theme .glass-panel {
+            background: rgba(30, 41, 59, 0.95) !important;
+            border-color: rgba(51, 65, 85, 0.9) !important;
+            color: #f8fafc !important;
+        }
+        .dark-theme .glass-panel .text-gray-900,
+        .dark-theme .glass-panel .text-gray-800,
+        .dark-theme .glass-panel .text-gray-700 {
+            color: #f8fafc !important;
+        }
+        .dark-theme .glass-panel .text-gray-600,
+        .dark-theme .glass-panel .text-gray-500 {
+            color: #94a3b8 !important;
+        }
+        .dark-theme .glass-panel input,
+        .dark-theme .glass-panel textarea {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+
         /* Custom scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
@@ -131,9 +158,15 @@
             <button id="fitBoundsBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition" title="Center map to show all points">
                 🎯 Fit All
             </button>
+            <button id="themeToggleBtn" type="button" class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+                <span id="themeIcon">🌙</span>
+            </button>
             <button id="openSettingsBtn" class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition" title="API Key Settings">
                 ⚙️
             </button>
+            <a href="dist/around/README.html" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition hidden sm:inline-flex items-center space-x-1" title="View Documentation">
+                <span>📖 Docs</span>
+            </a>
         </div>
     </header>
 
@@ -1222,6 +1255,34 @@
             function start() {
                 setupEventListeners();
 
+                // Theme toggle logic
+                const current = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                function applyTheme(t) {
+                    const icon = document.getElementById('themeIcon');
+                    const btn = document.getElementById('themeToggleBtn');
+                    if (t === 'dark') {
+                        document.documentElement.classList.add('dark-theme');
+                        document.body.classList.add('dark-theme');
+                        if (icon) icon.textContent = '☀️';
+                        if (btn) btn.title = 'Switch to Light Mode';
+                    } else {
+                        document.documentElement.classList.remove('dark-theme');
+                        document.body.classList.remove('dark-theme');
+                        if (icon) icon.textContent = '🌙';
+                        if (btn) btn.title = 'Switch to Dark Mode';
+                    }
+                }
+                applyTheme(current);
+                const themeBtn = document.getElementById('themeToggleBtn');
+                if (themeBtn) {
+                    themeBtn.addEventListener('click', () => {
+                        const isDark = document.body.classList.contains('dark-theme');
+                        const next = isDark ? 'light' : 'dark';
+                        localStorage.setItem('theme', next);
+                        applyTheme(next);
+                    });
+                }
+
                 if (state.apiKey) {
                     loadGoogleMapsAPI(state.apiKey, initMap);
                 } else {
@@ -1232,5 +1293,17 @@
             start();
         })();
     </script>
+
+    <!-- Floating Bottom Footer -->
+    <footer class="absolute bottom-4 left-4 right-4 z-20 flex justify-center pointer-events-none">
+        <div class="glass-panel rounded-xl px-4 py-2 pointer-events-auto text-xs text-center max-w-xl shadow-lg space-y-1">
+            <p class="font-semibold text-gray-700">
+                <strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">innovumabot.com</a> &bull; MIT License
+            </p>
+            <p class="text-[11px] text-gray-500 opacity-90">
+                All coordinate processing and route calculations run locally in your browser. Map rendering and route connecting call the Google Maps API directly using your personal API key. No locations or files are tracked or saved.
+            </p>
+        </div>
+    </footer>
 </body>
 </html>

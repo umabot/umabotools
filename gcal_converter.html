@@ -10,10 +10,43 @@
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --bg-page: #f7f7f7;
+            --bg-card: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+            --border-color: #e5e7eb;
+        }
+        .dark-theme, [data-theme="dark"] {
+            --bg-page: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
         /* Custom font and base styling */
         body {
             font-family: "Inter", sans-serif;
-            background-color: #f7f7f7;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .dark-theme .bg-white {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+        .dark-theme .bg-indigo-50 {
+            background-color: #0f172a !important;
+            border-color: #312e81 !important;
+        }
+        .dark-theme .text-gray-600,
+        .dark-theme .text-gray-500 {
+            color: #94a3b8 !important;
+        }
+        .dark-theme textarea {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border-color: #3730a3 !important;
         }
         /* Style for the copy button when it shows success */
         .copied-success {
@@ -23,9 +56,27 @@
         }
     </style>
 </head>
-<body class="p-4 sm:p-8 min-h-screen">
+<body class="p-4 sm:p-8 min-h-screen flex flex-col justify-between">
 
-    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl p-6 md:p-10">
+    <header class="max-w-4xl w-full mx-auto mb-4 p-3 bg-white shadow rounded-xl flex items-center justify-between flex-wrap gap-2 border border-gray-200">
+        <div class="flex items-center space-x-2">
+            <a href="index.html" class="flex items-center space-x-2 text-indigo-600 font-bold hover:underline" title="Back to Umabot Tools">
+                <span class="text-xl">📋</span>
+                <span class="text-base sm:text-lg">GCal Participant Cleaner</span>
+            </a>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-medium border border-indigo-200">CSV Utility</span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button id="themeToggleBtn" type="button" class="p-1.5 px-2.5 rounded-lg border border-gray-300 bg-gray-50 text-xs text-gray-700 hover:bg-gray-100 transition" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+                <span id="themeIcon">🌙</span>
+            </button>
+            <a href="dist/gcal_converter/README.html" class="p-1.5 px-3 rounded-lg border border-gray-300 bg-gray-50 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition hidden sm:inline-flex items-center space-x-1" title="View Documentation">
+                📖 Docs
+            </a>
+        </div>
+    </header>
+
+    <div class="max-w-4xl w-full mx-auto bg-white shadow-xl rounded-xl p-6 md:p-10 flex-1">
 
         <header class="mb-8 text-center">
             <h1 class="text-3xl font-extrabold text-indigo-700 mb-2">GCal Participant List Cleaner</h1>
@@ -67,11 +118,13 @@
             </div>
         </section>
 
-        <!-- Footer/Instructions -->
-        <footer class="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
-            <p>Paste the list, click convert, and copy the ready-to-use CSV for your meeting notes.</p>
-        </footer>
     </div>
+
+    <!-- Standard Footer -->
+    <footer class="max-w-4xl w-full mx-auto mt-6 pt-4 pb-2 border-t border-gray-300 text-center text-xs text-gray-500 space-y-1">
+        <p><strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline">innovumabot.com</a> &bull; MIT License</p>
+        <p class="opacity-75">All text parsing and CSV conversion happen strictly client-side in your browser. No participant names, emails, or calendar data are saved, logged, or uploaded to any server.</p>
+    </footer>
 
     <script>
         /**
@@ -164,6 +217,36 @@
                  }, 2000);
             }
         }
+
+        // Theme toggle logic
+        (function() {
+            const current = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            function applyTheme(t) {
+                const icon = document.getElementById('themeIcon');
+                const btn = document.getElementById('themeToggleBtn');
+                if (t === 'dark') {
+                    document.documentElement.classList.add('dark-theme');
+                    document.body.classList.add('dark-theme');
+                    if (icon) icon.textContent = '☀️';
+                    if (btn) btn.title = 'Switch to Light Mode';
+                } else {
+                    document.documentElement.classList.remove('dark-theme');
+                    document.body.classList.remove('dark-theme');
+                    if (icon) icon.textContent = '🌙';
+                    if (btn) btn.title = 'Switch to Dark Mode';
+                }
+            }
+            applyTheme(current);
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    const isDark = document.body.classList.contains('dark-theme');
+                    const next = isDark ? 'light' : 'dark';
+                    localStorage.setItem('theme', next);
+                    applyTheme(next);
+                });
+            }
+        })();
     </script>
 </body>
 </html>

@@ -255,3 +255,62 @@ Optional cleanup after migration to external-only usage:
 ```bash
 rm -rf ~/Documents/code/umabotools/.venv
 ```
+
+---
+
+## Header & Footer Standardization
+
+**Branch**: `standardization-of-header-and-footers-for-each-tool`
+
+All 14 single-page HTML tools were updated to follow a consistent header/footer standard modeled after `lang2cron.html`.
+
+### Standard Header Elements
+
+Every tool's `<header>` now includes:
+
+1. **← Home link** — navigates back to `index.html`
+2. **🌙/☀️ Theme toggle** — switches between dark and light mode; preference persisted in `localStorage('theme')` (shared across all tools)
+3. **⚙️ API key button** *(only where the tool requires an API key)* — shows/hides the API key input section
+4. **📖 Docs link** — navigates to the tool's documentation page in `dist/<tool>/README.html`
+
+### Standard Footer Elements
+
+Every tool's `<footer>` now includes two rows:
+
+- **Row 1**: `InnovUmabot | innovumabot.com • MIT License`
+- **Row 2**: A tool-specific client-side disclaimer. For tools that call an external API (Gemini, Google Maps), the disclaimer explicitly notes that requests go directly from the browser to the API — no intermediate servers, no data collection.
+
+### Favicon
+
+All tools now include the standard 3-tag favicon block in `<head>`. Two tools were missing it and had it added:
+
+- `datetimeparser.html` — favicon added
+- `timezoneconverter.html` — favicon added
+
+### Changes Summary
+
+| Tool | Favicon | Home Link | Theme Toggle | Docs Link | Footer | API Key Btn |
+|------|:-------:|:---------:|:------------:|:---------:|:------:|:-----------:|
+| `around.html` | ✅ | ✅ | ✅ Added | ✅ Added | ✅ Floating overlay | ✅ (existing `openSettingsBtn`) |
+| `artemis_launch_counter.html` | ✅ | ✅ Added | ✅ Added | ✅ Added | ✅ Expanded existing | — |
+| `clubciclista.html` | ✅ | ✅ Added | ✅ Added | ✅ Added | ✅ Updated `footer-bottom` | — |
+| `datetimeparser.html` | ✅ **Added** | ✅ Added | ✅ Added | ✅ Added | ✅ Replaced existing | — |
+| `day_calculator.html` | ✅ | ✅ Added | ✅ Added | ✅ Added | ✅ New footer | — |
+| `gcal_converter.html` | ✅ | ✅ Added | ✅ Added | ✅ Added | ✅ Replaced existing | — |
+| `image_comparison.html` | ✅ | ✅ Added | ✅ Added | ✅ Added | ✅ Replaced existing | — |
+| `lang2cron.html` | ✅ | ✅ | ✅ | ✅ | ✅ Disclaimer updated | ✅ (existing) |
+| `photo_tagger.html` | ✅ | ✅ Added | ✅ Added | ✅ Added | ✅ New footer | ✅ Added (toggles `#apiKeyContainer`) |
+| `qr_generator.html` | ✅ | ✅ Added | ✅ Added | ✅ Added | ✅ New footer | — |
+| `secure_secrets_gs.html` | ✅ | ✅ Added | ✅ Added | ✅ Added | ✅ Replaced existing | — |
+| `spaceinvaders.html` | ✅ | ✅ Added | ✅ Added | ✅ Added | ✅ Compact footer | — |
+| `test_translate.html` | ✅ | ✅ Added | ✅ Added | ✅ Added | ✅ New footer | — |
+| `timezoneconverter.html` | ✅ **Added** | ✅ Added | ✅ Added | ✅ Added | ✅ New footer | — |
+
+### Implementation Notes
+
+- **Theme persistence**: All tools share the `localStorage` key `theme` for cross-tool consistency. `lang2cron.html` retains its own `lang2cron_theme` key for backward compatibility but also writes to the shared `theme` key.
+- **`timezoneconverter.html`**: Already used a `data-theme` attribute system; theme toggle was adapted to use `setAttribute('data-theme', ...)` instead of class toggling.
+- **`around.html`**: Full-viewport map layout — header controls were added to the existing floating panel; footer is a floating glass-panel overlay that does not obstruct the map.
+- **`spaceinvaders.html`**: Fullscreen canvas — a slim retro-styled header was added above the game container and a compact footer below the mobile controls.
+- **`photo_tagger.html`**: The `#apiKeyContainer` is now hidden by default; the `⚙️` button in the header toggles its visibility.
+- **Files not modified**: `index.md`, `index.html`, and all `docs/*/README.md` files were intentionally left unchanged.
