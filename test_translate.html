@@ -10,39 +10,57 @@
     <!-- Google Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
     <style>
+        :root {
+            --bg-page: #f3f4f6;
+            --bg-card: #ffffff;
+            --text-main: #111827;
+            --text-muted: #4b5563;
+            --border-color: #e5e7eb;
+        }
+        .dark-theme, [data-theme="dark"] {
+            --bg-page: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
         /* Reset & Base Styles */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { font-size: 16px; }
-        body { line-height: 1.5; }
+        body { line-height: 1.5; font-family: 'Inter', sans-serif; background-color: var(--bg-page); color: var(--text-main); transition: background-color 0.2s, color 0.2s; }
         
         /* Utility Classes */
-        .container { max-width: 42rem; margin: 0 auto; padding: 2rem; }
+        .container { max-width: 44rem; margin: 0 auto; padding: 2rem 1rem; min-height: 100vh; display: flex; flex-direction: column; }
         .header { margin-bottom: 2rem; }
-        .title { font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem; }
-        .subtitle { color: #4b5563; }
+        .title { font-size: 1.875rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; }
+        .subtitle { color: var(--text-muted); }
         
-        .card { background: white; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
-        .card h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; }
-        .card p { margin-bottom: 1rem; color: #374151; }
+        .card { background: var(--bg-card); padding: 2rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border-color); flex: 1; }
+        .card h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-main); }
+        .card p { margin-bottom: 1rem; color: var(--text-muted); }
         
-        .notice { background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; font-size: 0.875rem; }
+        .notice { background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; padding: 1rem; border-radius: 0.5rem; margin-top: 1.5rem; font-size: 0.875rem; }
+        .dark-theme .notice { background: #1e293b; border-color: #3b82f6; color: #93c5fd; }
+        .dark-theme .card p { color: #cbd5e1; }
+        .dark-theme .lang-btn { background: #1e293b; color: #f8fafc; border-color: #334155; }
+        .dark-theme .lang-btn:hover { background: #334155; }
         .notice strong { font-weight: 600; }
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         
         /* Language Picker Styles */
-        .lang-switcher { display: flex; gap: 10px; margin-bottom: 2rem; }
+        .lang-switcher { display: flex; gap: 10px; margin-bottom: 2rem; flex-wrap: wrap; }
         .lang-btn { 
             padding: 8px 16px; 
             border-radius: 6px; 
-            border: 1px solid #d1d5db; 
-            background: white; 
+            border: 1px solid var(--border-color); 
+            background: var(--bg-card); 
+            color: var(--text-main);
             font-size: 14px; 
             font-weight: 600; 
             cursor: pointer; 
             transition: all 0.2s; 
         }
-        .lang-btn:hover { background: #f9fafb; }
-        .lang-btn.active { background: #2563eb; color: white; border-color: #1d4ed8; }
+        .lang-btn:hover { opacity: 0.85; }
+        .lang-btn.active { background: #2563eb !important; color: white !important; border-color: #1d4ed8 !important; }
 
         /* Hide Google Translate UI elements */
         #google_translate_element, .skiptranslate { display: none !important; }
@@ -73,10 +91,28 @@
 <body style="background-color: #f3f4f6;">
 
     <div class="container">
-        <header class="header">
+        <header class="header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 2rem; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <a href="index.html" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; font-weight: 700;" title="Back to Umabot Tools">
+                    <span style="font-size: 1.3rem;">🌐</span>
+                    <span style="font-size: 1.1rem;">Translation Test</span>
+                </a>
+                <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: var(--bg-page); border: 1px solid var(--border-color); color: var(--text-muted);">Demo</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button id="themeToggleBtn" type="button" style="background: var(--bg-page); border: 1px solid var(--border-color); color: var(--text-main); padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+                    <span id="themeIcon">🌙</span>
+                </button>
+                <a href="dist/test_translate/README.html" style="background: var(--bg-page); border: 1px solid var(--border-color); color: var(--text-main); padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; text-decoration: none;" title="View Documentation">
+                    📖 Docs
+                </a>
+            </div>
+        </header>
+
+        <div style="margin-bottom: 1.5rem;">
             <h1 class="title">Translation Test App</h1>
             <p class="subtitle">Testing programmatic Google Translate integration without the native widget.</p>
-        </header>
+        </div>
 
         <!-- Hidden Google Element -->
         <div id="google_translate_element"></div>
@@ -118,6 +154,15 @@
             <strong>ℹ️ Privacy Notice:</strong> Google Translate uses cookies to maintain translation state. 
             This app stores only your language preference locally using localStorage (no server, no tracking).
         </div>
+
+        <footer style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); text-align: center; font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">
+            <p style="margin-bottom: 4px; font-weight: 600;">
+                <strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: none;">innovumabot.com</a> &bull; MIT License
+            </p>
+            <p style="opacity: 0.85;">
+                App interface and state management run client-side. In-page translation is powered by Google Translate client library. No user data, session information, or files are collected or stored by Umabot Tools.
+            </p>
+        </footer>
     </div>
 
     <!-- Google Translate Script -->
@@ -186,6 +231,34 @@
 
             // Check for script load errors after delay
             setTimeout(checkScriptLoad, 3000);
+
+            // Theme toggle logic
+            const current = localStorage.getItem('theme') || 'light';
+            function applyTheme(t) {
+                const icon = document.getElementById('themeIcon');
+                const btn = document.getElementById('themeToggleBtn');
+                if (t === 'dark') {
+                    document.documentElement.classList.add('dark-theme');
+                    document.body.classList.add('dark-theme');
+                    if (icon) icon.textContent = '☀️';
+                    if (btn) btn.title = 'Switch to Light Mode';
+                } else {
+                    document.documentElement.classList.remove('dark-theme');
+                    document.body.classList.remove('dark-theme');
+                    if (icon) icon.textContent = '🌙';
+                    if (btn) btn.title = 'Switch to Dark Mode';
+                }
+            }
+            applyTheme(current);
+            const themeBtn = document.getElementById('themeToggleBtn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', () => {
+                    const isDark = document.body.classList.contains('dark-theme');
+                    const next = isDark ? 'light' : 'dark';
+                    localStorage.setItem('theme', next);
+                    applyTheme(next);
+                });
+            }
         });
     </script>
 </body>

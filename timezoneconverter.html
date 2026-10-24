@@ -3,16 +3,31 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/png" sizes="32x32" href="./assets/images/InnovUmabot_Logo_favicon.png">
+<link rel="shortcut icon" type="image/png" href="./assets/images/InnovUmabot_Logo_favicon.png">
+<link rel="apple-touch-icon" href="./assets/images/InnovUmabot_Logo_favicon.png">
 <title>Time zone converter</title>
 <style>
 :root{--bg:#eef2f4;--surface:#fff;--ink:#16222b;--muted:#5d6b75;--line:#d3dce1;--accent:#0b6b73;--accent-ink:#fff;--warn:#8a4b00;--warnbg:#fff1dc;--err:#a3202c;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light dark}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10181d;--surface:#18232a;--ink:#e6eef2;--muted:#93a4ae;--line:#2b3a43;--accent:#5cc3cc;--accent-ink:#06262a;--warn:#ffcf8a;--warnbg:#3a2a10;--err:#ff8d96}}
 :root[data-theme="dark"]{--bg:#10181d;--surface:#18232a;--ink:#e6eef2;--muted:#93a4ae;--line:#2b3a43;--accent:#5cc3cc;--accent-ink:#06262a;--warn:#ffcf8a;--warnbg:#3a2a10;--err:#ff8d96}
+:root[data-theme="light"]{--bg:#eef2f4;--surface:#fff;--ink:#16222b;--muted:#5d6b75;--line:#d3dce1;--accent:#0b6b73;--accent-ink:#fff;--warn:#8a4b00;--warnbg:#fff1dc;--err:#a3202c}
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:860px;margin:0 auto;padding:28px 16px 48px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.umabot-top-bar{background:var(--surface);border-bottom:1px solid var(--line);padding:10px 16px;position:sticky;top:0;z-index:20}
+.umabot-nav-inner{max-width:860px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.umabot-brand-link{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;font-weight:700}
+.umabot-brand-link:hover{opacity:0.85}
+.umabot-badge{font-size:0.75rem;padding:2px 8px;border-radius:999px;background:var(--bg);border:1px solid var(--line);color:var(--muted);font-weight:500}
+.umabot-controls{display:flex;align-items:center;gap:8px}
+.umabot-btn{background:var(--surface);border:1px solid var(--line);color:var(--ink);padding:5px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer;display:inline-flex;align-items:center;gap:4px;text-decoration:none}
+.umabot-btn:hover{background:var(--bg)}
+.umabot-footer{background:var(--surface);border-top:1px solid var(--line);padding:18px 16px;text-align:center;font-size:0.75rem;color:var(--muted);margin-top:auto}
+.umabot-footer a{color:var(--accent);text-decoration:none}
+.umabot-footer a:hover{text-decoration:underline}
+main{max-width:860px;width:100%;margin:0 auto;padding:24px 16px 40px;flex:1}
 h1{font-size:1.6rem;margin:0 0 4px;letter-spacing:-.01em}
 .sub{color:var(--muted);margin:0 0 20px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
@@ -51,6 +66,27 @@ input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);ou
 </style>
 </head>
 <body>
+
+<header class="umabot-top-bar">
+  <div class="umabot-nav-inner">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <a href="index.html" class="umabot-brand-link" title="Back to Umabot Tools">
+        <span style="font-size:1.3rem;">🌍</span>
+        <span>Time Zone Converter</span>
+      </a>
+      <span class="umabot-badge">Utility</span>
+    </div>
+    <div class="umabot-controls">
+      <button id="themeToggleBtn" type="button" class="umabot-btn" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+        <span id="themeIcon">🌙</span>
+      </button>
+      <a href="dist/timezoneconverter/README.html" class="umabot-btn" title="View Documentation">
+        📖 Docs
+      </a>
+    </div>
+  </div>
+</header>
+
 <main>
 <h1>Time zone converter</h1>
 <p class="sub">Type a time the way you’d say it. Get Zulu, offset and programming formats for every zone you add.</p>
@@ -294,6 +330,44 @@ $("policy").addEventListener("change",run);
 function copyText(t,btn){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{toast("Copied");if(btn){btn.replaceChildren(ICON_OK());setTimeout(()=>btn.replaceChildren(ICON_COPY()),1100);}},()=>toast("Select and copy manually"));}
 $("out").addEventListener("click",e=>{const b=e.target.closest(".copy");if(b)copyText(b.previousElementSibling.textContent,b);else if(e.target.tagName==="CODE")copyText(e.target.textContent);});
 chips();run();
+
+// Theme toggle logic
+(function() {
+  const current = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    const icon = document.getElementById('themeIcon');
+    const btn = document.getElementById('themeToggleBtn');
+    if (t === 'dark') {
+      if (icon) icon.textContent = '☀️';
+      if (btn) btn.title = 'Switch to Light Mode';
+    } else {
+      if (icon) icon.textContent = '🌙';
+      if (btn) btn.title = 'Switch to Dark Mode';
+    }
+  }
+  applyTheme(current);
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const next = isDark ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      applyTheme(next);
+    });
+  }
+})();
 </script>
+
+<footer class="umabot-footer">
+  <div style="max-width:860px;margin:0 auto;line-height:1.6;">
+    <p style="margin:0 0 4px;font-weight:600;">
+      <strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer">innovumabot.com</a> &bull; MIT License
+    </p>
+    <p style="margin:0;opacity:0.8;font-size:0.75rem;">
+      All timezone conversions, natural language time parsing, and offsets run client-side. No queries or time data are sent to any remote server.
+    </p>
+  </div>
+</footer>
 </body>
 </html>

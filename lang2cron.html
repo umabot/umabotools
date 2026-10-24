@@ -415,7 +415,7 @@
     <!-- Footer -->
     <footer class="card-surface border-t py-4 px-6 text-center text-xs mt-auto" style="border-color: var(--border-color); color: var(--text-muted);">
         <p><strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">innovumabot.com</a> &bull; MIT License</p>
-        <p class="mt-1 opacity-75">All translation &amp; validation logic runs client-side in your browser. No server required.</p>
+        <p class="mt-1 opacity-75">All schedule compilation runs client-side. Natural language processing queries the Google Gemini API directly from your browser using your API key. No intermediate servers, personal data, or prompts are stored or collected.</p>
     </footer>
 
     <!-- Settings Modal (API Key Management) -->
@@ -488,7 +488,7 @@
             // Application State
             const state = {
                 apiKey: localStorage.getItem(STORAGE_KEY_API) || '',
-                theme: localStorage.getItem(STORAGE_KEY_THEME) || 'light',
+                theme: localStorage.getItem('theme') || localStorage.getItem(STORAGE_KEY_THEME) || 'light',
                 conversationHistory: [], // Holds turn-by-turn messages
                 isGenerating: false,
                 currentCron: null
@@ -581,6 +581,7 @@ Interaction Rules:
              */
             function applyTheme(theme) {
                 state.theme = theme;
+                localStorage.setItem('theme', theme);
                 localStorage.setItem(STORAGE_KEY_THEME, theme);
                 if (theme === 'dark') {
                     document.documentElement.classList.add('dark-theme');

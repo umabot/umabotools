@@ -8,25 +8,111 @@
     <link rel="apple-touch-icon" href="./assets/images/InnovUmabot_Logo_favicon.png">
     <title>Date Calculator</title>
     <style>
+        :root {
+            --bg-page: #0a0a0a;
+            --bg-card: #1a1a1a;
+            --bg-group: #252525;
+            --text-main: #e0e0e0;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --accent: #4a9eff;
+        }
+        .light-theme, [data-theme="light"] {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-group: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --accent: #2563eb;
+        }
         * {
             box-sizing: border-box;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px;
+            max-width: 860px;
             margin: 0 auto;
-            padding: 20px;
-            background: #0a0a0a;
-            color: #e0e0e0;
+            padding: 16px;
+            background: var(--bg-page);
+            color: var(--text-main);
+            transition: background 0.2s, color 0.2s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+        .umabot-top-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .umabot-brand-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+            font-weight: 700;
+        }
+        .umabot-brand-link:hover { opacity: 0.85; }
+        .umabot-badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: var(--bg-group);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+        .umabot-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .umabot-btn {
+            background: var(--bg-group);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .umabot-btn:hover { opacity: 0.85; }
+        .umabot-footer {
+            margin-top: 30px;
+            padding: 20px 16px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .umabot-footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .umabot-footer a:hover { text-decoration: underline; }
         .container {
-            background: #1a1a1a;
+            background: var(--bg-card);
             border-radius: 12px;
             padding: 30px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            flex: 1;
         }
         h1 {
-            color: #4a9eff;
+            color: var(--accent);
             margin-bottom: 30px;
             text-align: center;
         }
@@ -37,15 +123,15 @@
             margin-bottom: 30px;
         }
         .input-group {
-            background: #252525;
+            background: var(--bg-group);
             padding: 20px;
             border-radius: 8px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-color);
         }
         .input-group label {
             display: block;
             margin-bottom: 10px;
-            color: #888;
+            color: var(--text-muted);
             font-size: 0.9em;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -53,27 +139,30 @@
         input[type="date"] {
             width: 100%;
             padding: 12px;
-            background: #1a1a1a;
-            border: 2px solid #333;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
             border-radius: 6px;
-            color: #e0e0e0;
+            color: var(--text-main);
             font-size: 16px;
             transition: border-color 0.3s;
         }
         input[type="date"]:focus {
             outline: none;
-            border-color: #4a9eff;
+            border-color: var(--accent);
         }
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(1);
             cursor: pointer;
         }
+        .light-theme input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: none;
+        }
         .date-section {
-            background: #252525;
+            background: var(--bg-group);
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-color);
         }
         .date-info {
             display: grid;
@@ -178,6 +267,24 @@
     </style>
 </head>
 <body>
+    <header class="umabot-top-bar">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <a href="index.html" class="umabot-brand-link" title="Back to Umabot Tools">
+                <span style="font-size:1.3rem;">📅</span>
+                <span>Date Calculator</span>
+            </a>
+            <span class="umabot-badge">1-Page Tool</span>
+        </div>
+        <div class="umabot-controls">
+            <button id="themeToggleBtn" type="button" class="umabot-btn" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+                <span id="themeIcon">☀️</span>
+            </button>
+            <a href="dist/day_calculator/README.html" class="umabot-btn" title="View Documentation">
+                📖 Docs
+            </a>
+        </div>
+    </header>
+
     <div class="container">
         <h1>Date Calculator</h1>
         
@@ -376,6 +483,45 @@
         
         // Initial calculation
         calculateDates();
+
+        // Theme toggle logic
+        (function() {
+            const current = localStorage.getItem('theme') || 'dark';
+            function applyTheme(t) {
+                const icon = document.getElementById('themeIcon');
+                const btn = document.getElementById('themeToggleBtn');
+                if (t === 'light') {
+                    document.documentElement.classList.add('light-theme');
+                    document.body.classList.add('light-theme');
+                    if (icon) icon.textContent = '🌙';
+                    if (btn) btn.title = 'Switch to Dark Mode';
+                } else {
+                    document.documentElement.classList.remove('light-theme');
+                    document.body.classList.remove('light-theme');
+                    if (icon) icon.textContent = '☀️';
+                    if (btn) btn.title = 'Switch to Light Mode';
+                }
+            }
+            applyTheme(current);
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    const isLight = document.body.classList.contains('light-theme');
+                    const next = isLight ? 'dark' : 'light';
+                    localStorage.setItem('theme', next);
+                    applyTheme(next);
+                });
+            }
+        })();
     </script>
+
+    <footer class="umabot-footer">
+        <p style="margin:0 0 4px;font-weight:600;">
+            <strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer">innovumabot.com</a> &bull; MIT License
+        </p>
+        <p style="margin:0;opacity:0.8;font-size:0.75rem;">
+            All date calculations and visual breakdowns run 100% client-side in your browser. No dates, inputs, or calculations are collected, uploaded, or tracked.
+        </p>
+    </footer>
 </body>
 </html>

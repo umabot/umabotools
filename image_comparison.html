@@ -21,6 +21,32 @@
             --border-color: #e2e8f0;
         }
 
+        .dark-theme, [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        .dark-theme input[type="text"] {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+
+        .dark-theme .custom-file-button {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #94a3b8 !important;
+        }
+
+        .dark-theme .reset-button {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #cbd5e1 !important;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -313,10 +339,28 @@
 </head>
 <body>
 
-    <header>
-        <h1>Before & After Studio</h1>
-        <p>A simple, private way to visualize changes. Upload your images or use a URL to see the difference.</p>
+    <header class="umabot-top-bar" style="width: 100%; max-width: 900px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; padding: 12px 18px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="index.html" style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: inherit; text-decoration: none;" title="Back to Umabot Tools">
+                <span style="font-size: 1.3rem;">🪞</span>
+                <span style="font-size: 1.05rem;">Before & After Studio</span>
+            </a>
+            <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-muted);">Image Diff</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="themeToggleBtn" type="button" style="background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+                <span id="themeIcon">🌙</span>
+            </button>
+            <a href="dist/image_comparison/README.html" style="background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; text-decoration: none;" title="View Documentation">
+                📖 Docs
+            </a>
+        </div>
     </header>
+
+    <div style="text-align: center; margin-bottom: 2rem; max-width: 600px;">
+        <h1>Before & After Studio</h1>
+        <p style="color: var(--text-muted); line-height: 1.6; font-size: 1.1rem;">A simple, private way to visualize changes. Upload your images or use a URL to see the difference.</p>
+    </div>
 
     <div class="comparison-container" id="container">
         <!-- After Image (Background) -->
@@ -378,14 +422,45 @@
         </div>
     </div>
 
-    <footer>
-        <div>Images stored in your browser's LocalStorage • Pure HTML/JS/CSS</div>
-        <div class="privacy-note">
-            <strong>Privacy First:</strong> No cookies and no cloud uploads. All images stay strictly on your computer.
-        </div>
+    <footer style="margin-top: 40px; padding: 24px 16px 12px; width: 100%; max-width: 900px; border-top: 1px solid var(--border-color); text-align: center; font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">
+        <p style="margin-bottom: 4px; font-weight: 600;">
+            <strong>InnovUmabot</strong> | <a href="https://innovumabot.com" target="_blank" rel="noopener noreferrer" style="color: var(--accent-color); text-decoration: none;">innovumabot.com</a> &bull; MIT License
+        </p>
+        <p style="opacity: 0.85;">
+            All image comparison operations run entirely on your device. Uploaded images are stored strictly in your browser's LocalStorage and are never uploaded to the cloud.
+        </p>
     </footer>
 
     <script>
+        // Initialize Theme
+        (function() {
+            const current = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            function applyTheme(t) {
+                const icon = document.getElementById('themeIcon');
+                const btn = document.getElementById('themeToggleBtn');
+                if (t === 'dark') {
+                    document.documentElement.classList.add('dark-theme');
+                    document.body.classList.add('dark-theme');
+                    if (icon) icon.textContent = '☀️';
+                    if (btn) btn.title = 'Switch to Light Mode';
+                } else {
+                    document.documentElement.classList.remove('dark-theme');
+                    document.body.classList.remove('dark-theme');
+                    if (icon) icon.textContent = '🌙';
+                    if (btn) btn.title = 'Switch to Dark Mode';
+                }
+            }
+            applyTheme(current);
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    const isDark = document.body.classList.contains('dark-theme');
+                    const next = isDark ? 'light' : 'dark';
+                    localStorage.setItem('theme', next);
+                    applyTheme(next);
+                });
+            }
+        })();
         // Initialize Icons
         lucide.createIcons();
 
