@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Time zone converter</title>
+<style>
+:root{--bg:#eef2f4;--surface:#fff;--ink:#16222b;--muted:#5d6b75;--line:#d3dce1;--accent:#0b6b73;--accent-ink:#fff;--warn:#8a4b00;--warnbg:#fff1dc;--err:#a3202c;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10181d;--surface:#18232a;--ink:#e6eef2;--muted:#93a4ae;--line:#2b3a43;--accent:#5cc3cc;--accent-ink:#06262a;--warn:#ffcf8a;--warnbg:#3a2a10;--err:#ff8d96}}
+:root[data-theme="dark"]{--bg:#10181d;--surface:#18232a;--ink:#e6eef2;--muted:#93a4ae;--line:#2b3a43;--accent:#5cc3cc;--accent-ink:#06262a;--warn:#ffcf8a;--warnbg:#3a2a10;--err:#ff8d96}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:1.6rem;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+input,select,button{font:inherit;color:inherit}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+#when{font-size:1.15rem;padding:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media (max-width:560px){.grid{grid-template-columns:1fr}}
+.examples{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip,.ex{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:3px 10px;font-size:.85rem;cursor:pointer}
+.ex:hover,.chip button:hover{border-color:var(--accent)}
+.chip{display:inline-flex;gap:6px;align-items:center;cursor:default}
+.chip button{border:0;background:none;cursor:pointer;color:var(--muted);padding:0 2px}
+.addrow{display:flex;gap:8px;margin-top:10px}
+.addrow button,.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:9px 14px;cursor:pointer}
+.notice{border-radius:8px;padding:10px 12px;margin-bottom:16px;background:var(--warnbg);color:var(--warn)}
+.error{color:var(--err);margin:0 0 16px}
+.card h2{font-size:1.05rem;margin:0}
+.card .head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.tag{font-size:.8rem;color:var(--muted)}
+.tag b{color:var(--accent)}
+.row{display:grid;grid-template-columns:150px 1fr;gap:10px;padding:6px 0;border-top:1px solid var(--line);align-items:baseline}
+@media (max-width:560px){.row{grid-template-columns:1fr;gap:0}}
+.row span{color:var(--muted);font-size:.85rem}
+.row code{font:.95rem ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;cursor:pointer;word-break:break-all;padding:2px 4px;border-radius:4px}
+.row code:hover{background:var(--bg)}
+.val{display:flex;gap:8px;align-items:baseline;justify-content:space-between;min-width:0}
+.copy{flex:none;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:6px;padding:0;cursor:pointer}
+.copy svg{display:block}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:6px 14px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .15s}
+#toast.on{opacity:1}
+.hint{font-size:.85rem;color:var(--muted);margin:0}
+</style>
+</head>
+<body>
+<main>
+<h1>Time zone converter</h1>
+<p class="sub">Type a time the way you’d say it. Get Zulu, offset and programming formats for every zone you add.</p>
+
+<section class="panel">
+  <label for="when">Time to convert</label>
+  <input id="when" value="1 pm today" autocomplete="off" spellcheck="false">
+  <div class="examples" id="examples"></div>
+  <div class="grid">
+    <div><label for="src">Input is in zone</label><input id="src" list="zones" autocomplete="off"></div>
+    <div><label for="policy">If the time is skipped or repeated (DST)</label>
+      <select id="policy">
+        <option value="earlier">Repeated: use the first one, skipped: move forward</option>
+        <option value="later">Repeated: use the second one, skipped: move forward</option>
+        <option value="reject">Reject and show an error</option>
+      </select></div>
+  </div>
+  <p class="hint" style="margin-top:10px">An explicit Z, UTC or offset such as +02:00 in the text overrides the zone above. Slash dates are read day first.</p>
+</section>
+
+<section class="panel">
+  <label for="add">Target zones</label>
+  <div id="chips" class="examples" style="margin:0 0 4px"></div>
+  <div class="addrow"><input id="add" list="zones" placeholder="e.g. Asia/Singapore" autocomplete="off"><button id="addbtn" type="button">Add zone</button></div>
+  <datalist id="zones"></datalist>
+</section>
+
+<div id="status"></div>
+<div id="out"></div>
+<div id="toast" role="status"></div>
+</main>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const p2=n=>String(n).padStart(2,"0");
+const MON=["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+const WD=["sun","mon","tue","wed","thu","fri","sat"];
+const ABBR={z:0,utc:0,gmt:0,cet:60,cest:120,bst:60,eet:120,eest:180,msk:180,est:-300,edt:-240,cst:-360,cdt:-300,mst:-420,mdt:-360,pst:-480,pdt:-420,jst:540,kst:540,aest:600,aedt:660};
+const BASE_ZONES=["Europe/London","Europe/Paris","America/New_York","America/Los_Angeles","Asia/Kolkata","Asia/Tokyo","Australia/Sydney"];
+const EX=["1 pm today","tomorrow 09:30","2026-10-24 1300 Z","24 Oct 2026 3pm +02:00","2026-10-25 02:30","2026-03-29 02:30","next friday noon","1792839600"];
+let targets=["Europe/Paris","America/New_York","Asia/Kolkata","Asia/Tokyo"];
+
+/* ---- zone helpers (tzdata comes from the browser via Intl) ---- */
+const fmtCache={};
+function getParts(ms,tz){
+  const f=fmtCache[tz]||(fmtCache[tz]=new Intl.DateTimeFormat("en-US",{timeZone:tz,hourCycle:"h23",year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",second:"numeric",weekday:"short"}));
+  const o={};for(const x of f.formatToParts(new Date(ms)))o[x.type]=x.value;
+  const r={y:+o.year,mo:+o.month,d:+o.day,h:+o.hour%24,mi:+o.minute,s:+o.second,wd:o.weekday};
+  r.off=Date.UTC(r.y,r.mo-1,r.d,r.h,r.mi,r.s)-Math.floor(ms/1000)*1000;
+  return r;
+}
+const offsetAt=(ms,tz)=>getParts(ms,tz).off;
+function offStr(offMs,colon=true,zulu=false){
+  if(zulu&&offMs===0)return"Z";
+  const m=Math.round(Math.abs(offMs)/60000);
+  return(offMs<0?"-":"+")+p2(Math.floor(m/60))+(colon?":":"")+p2(m%60);
+}
+/* local wall time -> UTC instant, detecting gaps and overlaps */
+function resolveLocal(naive,tz,policy){
+  const o1=offsetAt(naive-864e5,tz),o2=offsetAt(naive+864e5,tz);
+  const c=[...new Set([o1,o2])].filter(o=>offsetAt(naive-o,tz)===o).map(o=>naive-o).sort((a,b)=>a-b);
+  if(c.length===1)return{ms:c[0]};
+  if(c.length===2){
+    if(policy==="reject")throw new Error("That local time happens twice in "+tz+" (clocks go back). Add an offset such as +02:00 or +01:00, or change the DST setting.");
+    return{ms:policy==="later"?c[1]:c[0],note:"This local time happens twice in "+tz+" because clocks go back. Used the "+(policy==="later"?"second":"first")+" one ("+offStr(policy==="later"?o2:o1)+"). Add an explicit offset to choose."};
+  }
+  if(policy==="reject")throw new Error("That local time doesn’t exist in "+tz+" (clocks jump forward).");
+  return{ms:naive-o1,note:"That local time doesn’t exist in "+tz+" because clocks jump forward. Moved forward by the gap length."};
+}
+
+/* ---- parsing human input ---- */
+function parse(input,srcTz){
+  let s=input.trim().toLowerCase().replace(/\s+/g," ");
+  if(!s)throw new Error("Type a time to convert.");
+  if(/^-?\d{9,16}$/.test(s))return{instant:s.replace("-","").length>=12?+s:+s*1000};
+  if(s==="now")return{instant:Date.now()};
+  let zone=null,off=null;
+  const br=input.match(/\[([^\]]+)\]\s*$/);
+  if(br){zone=br[1].trim();s=s.replace(/\[[^\]]+\]\s*$/,"").trim();}
+  let m=s.match(/^(\d{4})(\d{2})(\d{2})t?(\d{2})(\d{2})(\d{2})?(z|[+-]\d{4})?$/);
+  if(m)s=`${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}${m[6]?":"+m[6]:""}${m[7]||""}`;
+  s=s.replace(/(\d)t(\d)/,"$1 $2").replace(/(\d{1,2}:\d{2}:\d{2})\.\d+/,"$1");
+  m=s.match(/(?<=^|\s|\d)(z|utc|gmt|cest|cet|bst|eest|eet|msk|est|edt|cst|cdt|mst|mdt|pst|pdt|jst|kst|aest|aedt|[+-]\d{2}:\d{2}|[+-]\d{4})$/)||s.match(/(?<=\s)([+-]\d{2})$/);
+  if(m){
+    const t=m[1];
+    off=t in ABBR?ABBR[t]*60000:(t[0]==="-"?-1:1)*(+t.slice(1,3)*60+(+t.replace(":","").slice(3,5)||0))*60000;
+    s=s.slice(0,m.index).trim();
+  }
+  if(/\bist\b/.test(s))throw new Error("IST is ambiguous (India, Israel, Ireland). Use a zone like Asia/Kolkata or an offset like +05:30.");
+  const base=getParts(Date.now(),zone||srcTz);
+  let y=null,mo=null,d=null,h=0,mi=0,sec=0,hasDate=false,hasTime=false;
+  const MN="(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\.?",YR="((?:19|20|21)\\d{2})";
+  const cut=r=>{const x=s.match(r);if(x)s=(s.slice(0,x.index)+" "+s.slice(x.index+x[0].length)).trim();return x;};
+  let x;
+  if(x=cut(/\b(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})\b/)){y=+x[1];mo=+x[2];d=+x[3];hasDate=true;}
+  else if(x=cut(/\b(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})\b/)){d=+x[1];mo=+x[2];y=+x[3];hasDate=true;}
+  else if(x=cut(new RegExp("\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?"+MN+"(?:,?\\s*"+YR+")?"))){d=+x[1];mo=MON.indexOf(x[2])+1;y=x[3]?+x[3]:null;hasDate=true;}
+  else if(x=cut(new RegExp("\\b"+MN+"\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:,?\\s*"+YR+")?\\b"))){mo=MON.indexOf(x[1])+1;d=+x[2];y=x[3]?+x[3]:null;hasDate=true;}
+  else if(x=cut(/\b(today|tomorrow|yesterday)\b/)){const k={today:0,tomorrow:1,yesterday:-1}[x[1]];const t=new Date(Date.UTC(base.y,base.mo-1,base.d+k));y=t.getUTCFullYear();mo=t.getUTCMonth()+1;d=t.getUTCDate();hasDate=true;}
+  else if(x=cut(/\b(?:next\s+)?(sun|mon|tue|wed|thu|fri|sat)[a-z]*\b/)){const cur=new Date(Date.UTC(base.y,base.mo-1,base.d)).getUTCDay();let k=(WD.indexOf(x[1])-cur+7)%7;if(/next/.test(x[0])&&k===0)k=7;const t=new Date(Date.UTC(base.y,base.mo-1,base.d+k));y=t.getUTCFullYear();mo=t.getUTCMonth()+1;d=t.getUTCDate();hasDate=true;}
+  if(!hasDate){y=base.y;mo=base.mo;d=base.d;}
+  if(y===null)y=base.y;
+  if(x=cut(/\b(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?\s*([ap])\.?m\.?(?![a-z])/)){h=+x[1]%12+(x[4]==="p"?12:0);mi=+(x[2]||0);sec=+(x[3]||0);hasTime=true;}
+  else if(x=cut(/\b(\d{1,2}):(\d{2})(?::(\d{2}))?\b/)){h=+x[1];mi=+x[2];sec=+(x[3]||0);hasTime=true;}
+  else if(x=cut(/\b(noon|midnight)\b/)){h=x[1]==="noon"?12:0;hasTime=true;}
+  else if(x=cut(/\b([01]\d|2[0-3])([0-5]\d)\b/)){h=+x[1];mi=+x[2];hasTime=true;}
+  s=s.replace(/\b(at|on|the|of|in|next|this|around|about|,)\b/g," ").replace(/[,]/g," ").trim();
+  if(s)throw new Error("Couldn’t read “"+s+"”. Try forms like “1 pm today”, “24 Oct 2026 13:00”, or “2026-10-24 1300 +02:00”.");
+  if(!hasDate&&!hasTime)throw new Error("Couldn’t find a date or time in that text.");
+  if(h>23||mi>59||sec>59||mo<1||mo>12)throw new Error("That date or time is out of range.");
+  const chk=new Date(Date.UTC(y,mo-1,d,h,mi,sec));
+  if(chk.getUTCDate()!==d||chk.getUTCMonth()!==mo-1)throw new Error("That day doesn’t exist in the calendar.");
+  return{naive:chk.getTime(),off,zone,noTime:!hasTime};
+}
+
+/* ---- formatting ---- */
+const MILZ="ABCDEFGHI KLM";
+function milLetter(offMs){
+  const h=offMs/36e5;if(!Number.isInteger(h)||h<-12||h>12)return null;
+  if(h===0)return"Z";if(h>0)return MILZ[h-1];return"NOPQRSTUVWXY"[-h-1];
+}
+function rows(ms,tz){
+  const p=getParts(ms,tz),Y=p.y,MO=p2(p.mo),D=p2(p.d),H=p2(p.h),MI=p2(p.mi),S=p2(p.s);
+  const isUtc=tz==="UTC";
+  const iso=`${Y}-${MO}-${D}T${H}:${MI}:${S}${offStr(p.off,true,isUtc)}`;
+  const L=milLetter(p.off);
+  const human=new Intl.DateTimeFormat("en-GB",{dateStyle:"full",timeStyle:"long",timeZone:tz}).format(new Date(ms));
+  const r=[["Human",human],
+    ["ISO 8601 / RFC 3339",iso],
+    ["Date and time",`${Y}-${MO}-${D} ${H}${MI} (${offStr(p.off)})`],
+    ["With zone name (RFC 9557)",isUtc?iso:`${iso}[${tz}]`],
+    ["Basic ISO",`${Y}${MO}${D}T${H}${MI}${S}${offStr(p.off,false,isUtc)}`],
+    ["Military DTG",L?`${D}${H}${MI}${L} ${MON[p.mo-1].toUpperCase()} ${String(Y).slice(2)}`:"n/a (offset is not whole hours)"],
+    ["RFC 2822",`${p.wd}, ${D} ${MON[p.mo-1][0].toUpperCase()+MON[p.mo-1].slice(1)} ${Y} ${H}:${MI}:${S} ${offStr(p.off,false)}`]];
+  if(isUtc){r.push(["Unix seconds",String(Math.floor(ms/1000))],["Unix milliseconds",String(Math.floor(ms/1000)*1000+((ms%1000)+1000)%1000)]);}
+  return{rows:r,p};
+}
+function dstInfo(ms,tz,p){
+  const jan=offsetAt(Date.UTC(p.y,0,1),tz),jul=offsetAt(Date.UTC(p.y,6,1),tz);
+  if(jan===jul)return"no DST";
+  return p.off===Math.max(jan,jul)?"DST active":"standard time";
+}
+
+/* ---- DOM helpers (no innerHTML anywhere) ---- */
+const NS="http://www.w3.org/2000/svg";
+function h(tag,props,...kids){
+  const e=document.createElement(tag);
+  for(const k in props||{}){const v=props[k];if(k==="class")e.className=v;else if(k==="text")e.textContent=v;else e.setAttribute(k,v);}
+  for(const c of kids)if(c!=null)e.append(c);
+  return e;
+}
+function icon(shapes){
+  const s=document.createElementNS(NS,"svg");
+  const a={viewBox:"0 0 24 24",width:14,height:14,fill:"none",stroke:"currentColor","stroke-width":2,"stroke-linecap":"round","stroke-linejoin":"round","aria-hidden":"true"};
+  for(const k in a)s.setAttribute(k,a[k]);
+  for(const [t,attrs] of shapes){const n=document.createElementNS(NS,t);for(const k in attrs)n.setAttribute(k,attrs[k]);s.append(n);}
+  return s;
+}
+const ICON_COPY=()=>icon([["rect",{x:9,y:9,width:11,height:11,rx:2}],["path",{d:"M5 15V6a2 2 0 0 1 2-2h9"}]]);
+const ICON_OK=()=>icon([["path",{d:"M5 12l5 5L20 7"}]]);
+
+/* ---- render ---- */
+function card(title,ms,tz,srcDay){
+  const {rows:r,p}=rows(ms,tz);
+  const day=Math.floor((ms+p.off)/864e5)-srcDay;
+  const tag=h("span",{class:"tag"},"UTC"+offStr(p.off)+" · "+dstInfo(ms,tz,p));
+  if(day!==0)tag.append(" · ",h("b",{text:(day>0?"+":"\u2212")+Math.abs(day)+" day"}));
+  const sec=h("section",{class:"panel card"},h("div",{class:"head"},h("h2",{text:title}),tag));
+  for(const x of r){
+    sec.append(h("div",{class:"row"},
+      h("span",{text:x[0]}),
+      h("div",{class:"val"},
+        h("code",{tabindex:0,title:"Click to copy",text:x[1]}),
+        h("button",{type:"button",class:"copy","aria-label":"Copy "+x[0],title:"Copy"},ICON_COPY()))));
+  }
+  return sec;
+}
+function showError(msg){$("status").replaceChildren(h("p",{class:"error",text:msg}));}
+function run(){
+  const out=$("out"),st=$("status");out.replaceChildren();st.replaceChildren();last=null;
+  try{
+    const srcTz=$("src").value.trim()||"UTC";
+    new Intl.DateTimeFormat("en",{timeZone:srcTz});
+    const res=parse($("when").value,srcTz);
+    let ms,note=null,srcOff,srcLabel;
+    if(res.instant!==undefined){ms=res.instant;srcOff=offsetAt(ms,srcTz);srcLabel="Epoch value";}
+    else if(res.off!==null){ms=res.naive-res.off;srcOff=res.off;srcLabel="Input offset "+offStr(res.off,true,true);}
+    else{const tz=res.zone||srcTz;new Intl.DateTimeFormat("en",{timeZone:tz});const r=resolveLocal(res.naive,tz,$("policy").value);ms=r.ms;note=r.note;srcOff=offsetAt(ms,tz);srcLabel=tz;}
+    const stz=res.zone||srcTz;last={ms,tz:stz};if(res.noTime)note=(note?note+" ":"")+"No time given, so 00:00 in "+stz+" was used. Midnight in your zone can fall on the previous day in zones behind it, such as UTC.";
+    const srcDay=Math.floor((ms+srcOff)/864e5);
+    const cards=[];
+    if(stz!=="UTC")cards.push(card(stz+" (input zone)",ms,stz,srcDay));
+    cards.push(card("UTC (Zulu)",ms,"UTC",srcDay));
+    for(const tz of targets){if(tz===stz)continue;try{cards.push(card(tz,ms,tz,srcDay));}catch(e){}}
+    if(note)st.append(h("div",{class:"notice",text:note}));
+    out.append(...cards);
+  }catch(e){
+    showError(e.message.includes("Invalid time zone")?"Unknown time zone. Pick one from the list, such as Europe/Berlin.":e.message);
+  }
+}
+function chips(){
+  const c=$("chips");c.replaceChildren();
+  if(!targets.length){c.append(h("span",{class:"hint",text:"No zones added yet."}));return;}
+  targets.forEach((t,i)=>c.append(h("span",{class:"chip"},t,h("button",{type:"button","data-i":i,"aria-label":"Remove "+t,text:"\u00d7"}))));
+}
+function addZone(){
+  const v=$("add").value.trim();if(!v)return;
+  try{new Intl.DateTimeFormat("en",{timeZone:v});}catch(e){showError("Unknown time zone. Pick one from the list, such as Asia/Singapore.");return;}
+  const canon=new Intl.DateTimeFormat("en",{timeZone:v}).resolvedOptions().timeZone;
+  if(!targets.includes(canon)&&canon!=="UTC")targets.push(canon);
+  $("add").value="";chips();run();
+}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),1100);}
+
+/* ---- setup ---- */
+let zl=[];try{zl=Intl.supportedValuesOf("timeZone");}catch(e){zl=BASE_ZONES.concat(targets);}
+$("zones").replaceChildren(...zl.concat(["UTC"]).map(z=>h("option",{value:z})));
+$("src").value=Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC";
+let last=null;
+const SHIFTS=[[-14,"d"],[-7,"d"],[-1,"d"],[-6,"h"],[-3,"h"],[-1,"h"],[-30,"m"],[0,"now"],[30,"m"],[1,"h"],[3,"h"],[6,"h"],[1,"d"],[7,"d"],[14,"d"]];
+const UN={d:"day",h:"hour",m:"minute"};
+$("examples").replaceChildren(...SHIFTS.map(([k,u])=>u==="now"
+  ?h("button",{type:"button",class:"ex","data-u":"now",title:"Set to the current time",text:"Now"})
+  :h("button",{type:"button",class:"ex","data-k":k,"data-u":u,"aria-label":(k<0?"Subtract ":"Add ")+Math.abs(k)+" "+UN[u]+(Math.abs(k)>1?"s":""),text:(k<0?"\u2212":"+")+Math.abs(k)+u})));
+function shift(k,u){
+  if(!last)return;
+  const tz=last.tz;let ms;
+  if(u==="d"){const q=getParts(last.ms,tz);const pol=$("policy").value==="reject"?"earlier":$("policy").value;ms=resolveLocal(Date.UTC(q.y,q.mo-1,q.d+k,q.h,q.mi,q.s),tz,pol).ms;}
+  else ms=last.ms+k*(u==="h"?36e5:6e4);
+  const p=getParts(ms,tz);
+  $("when").value=`${p.y}-${p2(p.mo)}-${p2(p.d)} ${p2(p.h)}:${p2(p.mi)}${p.s?":"+p2(p.s):""}${offStr(p.off)}`;
+  run();
+}
+$("examples").addEventListener("click",e=>{const b=e.target.closest(".ex");if(!b)return;if(b.dataset.u==="now"){$("when").value="now";run();}else shift(+b.dataset.k,b.dataset.u);});
+$("chips").addEventListener("click",e=>{const i=e.target.dataset&&e.target.dataset.i;if(i!==undefined){targets.splice(+i,1);chips();run();}});
+$("addbtn").addEventListener("click",addZone);
+$("add").addEventListener("keydown",e=>{if(e.key==="Enter")addZone();});
+["when","src"].forEach(id=>$(id).addEventListener("input",run));
+$("policy").addEventListener("change",run);
+function copyText(t,btn){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{toast("Copied");if(btn){btn.replaceChildren(ICON_OK());setTimeout(()=>btn.replaceChildren(ICON_COPY()),1100);}},()=>toast("Select and copy manually"));}
+$("out").addEventListener("click",e=>{const b=e.target.closest(".copy");if(b)copyText(b.previousElementSibling.textContent,b);else if(e.target.tagName==="CODE")copyText(e.target.textContent);});
+chips();run();
+</script>
+</body>
+</html>
