@@ -2,7 +2,7 @@
 
 # Umabot Tools - Landing Page
 
-Welcome to Umabot Tools, a collection of single-page web applications. This project serves as a playground for exploring web development concepts, building lightweight tools, and testing interactive features—all within the simplicity of standalone HTML pages. Each app is self-contained and can run directly in your browser without any backend infrastructure.
+Welcome to Umabot Tools, a collection of single-page web applications and utilities. This project is a playground for lightweight tools built primarily as standalone HTML pages, with no project-managed backend. Some tools rely on external services, APIs, or CDN resources and may require an internet connection.
 
 Part of the inspiration comes from tools available from web pages, or [1-click tools](https://medium.com/application-mania/useful-1-line-tools-in-google-4aa0ffa66f4d).
 

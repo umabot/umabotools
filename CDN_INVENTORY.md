@@ -4,329 +4,207 @@ skip_conversion: true
 
 # CDN Dependency Inventory
 
-**Last Updated:** 15 March 2026  
-**Total Libraries:** 6 (4 regular + 2 documented exceptions)  
-**Compliance Status:** ✅ **100% Compliant** with AGENTS.md standards
+**Last Reviewed:** 24 October 2026
+**Scope:** Third-party CSS/JavaScript dependencies loaded by root-level HTML files, including API loader scripts; nested HTML snippets and generated documentation are excluded. Runtime API data requests, images, and ordinary links are not counted.
+**Compliance Status:** **Not fully compliant.** Four files use the Tailwind Play CDN without pinned versions, SRI, or `crossorigin`. The Google Maps JavaScript API loader in [around.html](around.html) also does not specify a version or release channel; SRI is not practical for this provider-controlled API script.
 
----
+This inventory records the CDN references present in the repository. The review reconciled URLs and HTML attributes; it was not a vulnerability scan or an independent validation of SRI hashes.
 
-## Summary Statistics
+## Summary
 
-- **HTML Files Analyzed:** 10
-- **Files with CDN Dependencies:** 7
-- **Files without CDN Dependencies:** 3
-- **Total CDN Resources:** 6 unique libraries
-- **Libraries with SRI:** 4 (100% of applicable libraries)
-- **Security Exceptions:** 2 (Google Fonts, Google Translate)
-
----
+- **Root-level HTML files analyzed:** 15
+- **Files with CDN dependencies:** 9
+- **Files without CDN dependencies:** 6
+- **Distinct libraries/services:** 7
+- **CDN references:** 20
+- **Static-library references pinned and protected with SRI:** 8 of 12 (the other 4 are Tailwind Play CDN references)
+- **Dynamic Google service references:** 8 (5 Google Fonts, 2 Google Translate, and 1 Google Maps JavaScript API)
+- **Tailwind Play CDN references requiring remediation:** 4
 
 ## Library Inventory
 
 ### 1. Tailwind CSS
 
-**Version:** 2.2.19  
-**Purpose:** Utility-first CSS framework  
-**CDN Provider:** jsDelivr (Recommended)  
-**Usage:** 4 files
+**Versions:** `2.2.19` for the static stylesheet; dynamic Play CDN for the noncompliant references
+**Purpose:** Utility-first CSS framework
+**Usage:** 7 files
 
-**CDN Configuration:**
+**Pinned static stylesheet configuration:**
+
 ```html
-<link 
+<link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
     integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg"
     crossorigin="anonymous">
 ```
 
-**Files Using This Library:**
-- [qr_generator.html](qr_generator.html)
-- [secure_secrets_gs.html](secure_secrets_gs.html)
-- [photo_tagger.html](photo_tagger.html)
-- [gcal_converter.html](gcal_converter.html)
-- [clubciclista.html](clubciclista.html)
+**Files using the pinned static stylesheet:**
 - [around.html](around.html)
+- [clubciclista.html](clubciclista.html)
 - [lang2cron.html](lang2cron.html)
 
-**Security Notes:**
-- ✅ Using prebuilt CSS file (NOT the Play CDN `cdn.tailwindcss.com`)
-- ✅ Version pinned to 2.2.19
-- ✅ SRI hash validated
-- ✅ CORS protection enabled
+**Files using the Tailwind Play CDN (noncompliant):**
+- [gcal_converter.html](gcal_converter.html)
+- [photo_tagger.html](photo_tagger.html)
+- [qr_generator.html](qr_generator.html)
+- [secure_secrets_gs.html](secure_secrets_gs.html)
 
-**Documentation:** https://tailwindcss.com/docs  
-**Last Security Audit:** 15 March 2026  
-**Known Vulnerabilities:** None
+The Play CDN is dynamic and these references do not pin a version or provide SRI and `crossorigin`. Replace them with a suitable pinned stylesheet and test affected pages before marking the inventory compliant. The app files have not been changed as part of this inventory update.
 
-**Generate SRI Hash:**
-```bash
-curl -s "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" | openssl dgst -sha384 -binary | openssl base64 -A
-```
-
----
+**Documentation:** https://tailwindcss.com/docs
 
 ### 2. Lucide Icons
 
-**Version:** 0.563.0  
-**Purpose:** Icon library with customizable SVG icons  
-**CDN Provider:** unpkg  
-**Usage:** 2 files
+**Version:** `0.563.0`
+**Purpose:** Icon library with customizable SVG icons
+**CDN provider:** unpkg
+**Usage:** 3 files
 
-**CDN Configuration:**
 ```html
-<script 
+<script
     src="https://unpkg.com/lucide@0.563.0/dist/umd/lucide.min.js"
     integrity="sha384-aRB6X3zBuyu5EQF6GZFp0RCYdOwxYAOdFk4nViPfqSXYxc+MrZlqbM+nUYRwDQn1"
     crossorigin="anonymous">
 </script>
 ```
 
-**Files Using This Library:**
-- [qr_generator.html](qr_generator.html)
-- [image_comparison.html](image_comparison.html)
+**Files:**
 - [clubciclista.html](clubciclista.html)
+- [image_comparison.html](image_comparison.html)
+- [qr_generator.html](qr_generator.html)
 
-**Security Notes:**
-- ✅ Version pinned to 0.563.0
-- ✅ SRI hash validated
-- ✅ CORS protection enabled
-
-**Documentation:** https://lucide.dev/  
-**Last Security Audit:** 14 February 2026  
-**Known Vulnerabilities:** None
-
-**Generate SRI Hash:**
-```bash
-curl -s "https://unpkg.com/lucide@0.563.0/dist/umd/lucide.min.js" | openssl dgst -sha384 -binary | openssl base64 -A
-```
-
----
+**Documentation:** https://lucide.dev/
 
 ### 3. Chart.js
 
-**Version:** 4.4.1  
-**Purpose:** JavaScript charting library  
-**CDN Provider:** jsDelivr (Recommended)  
+**Version:** `4.4.1`
+**Purpose:** JavaScript charting library
+**CDN provider:** jsDelivr
 **Usage:** 1 file
 
-**CDN Configuration:**
 ```html
-<script 
+<script
     src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"
     integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG"
     crossorigin="anonymous">
 </script>
 ```
 
-**Files Using This Library:**
-- [secure_secrets_gs.html](secure_secrets_gs.html)
-
-**Security Notes:**
-- ✅ Version pinned to 4.4.1
-- ✅ SRI hash validated
-- ✅ CORS protection enabled
-- ✅ Using UMD build for browser compatibility
-
-**Documentation:** https://www.chartjs.org/docs/  
-**Last Security Audit:** 14 February 2026  
-**Known Vulnerabilities:** None
-
-**Generate SRI Hash:**
-```bash
-curl -s "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js" | openssl dgst -sha384 -binary | openssl base64 -A
-```
-
----
+**File:** [secure_secrets_gs.html](secure_secrets_gs.html)
+**Documentation:** https://www.chartjs.org/docs/
 
 ### 4. QRCode.js
 
-**Version:** 1.0.0  
-**Purpose:** QR code generation library  
-**CDN Provider:** cdnjs (Cloudflare)  
+**Version:** `1.0.0`
+**Purpose:** QR code generation library
+**CDN provider:** cdnjs
 **Usage:** 1 file
 
-**CDN Configuration:**
 ```html
-<script 
+<script
     src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
     integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU"
     crossorigin="anonymous">
 </script>
 ```
 
-**Files Using This Library:**
-- [qr_generator.html](qr_generator.html)
+**File:** [qr_generator.html](qr_generator.html)
+**Documentation:** https://github.com/davidshimjs/qrcodejs
 
-**Security Notes:**
-- ✅ Version pinned to 1.0.0
-- ✅ SRI hash validated
-- ✅ CORS protection enabled
+### 5. Google Fonts — documented exception
 
-**Documentation:** https://github.com/davidshimjs/qrcodejs  
-**Last Security Audit:** 14 February 2026  
-**Known Vulnerabilities:** None (stable legacy library)
+**Version:** Dynamic provider response
+**Purpose:** Web fonts
+**Usage:** 5 files
 
-**Generate SRI Hash:**
-```bash
-curl -s "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" | openssl dgst -sha384 -binary | openssl base64 -A
-```
+Google Fonts serves browser-dependent CSS and font resources, so the project documents it as an exception to version pinning and SRI. The current embed patterns do not use `crossorigin`.
 
----
+**Files:**
+- [around.html](around.html) — Inter
+- [clubciclista.html](clubciclista.html) — Inter
+- [lang2cron.html](lang2cron.html) — Inter and JetBrains Mono
+- [qr_generator.html](qr_generator.html) — Inter
+- [test_translate.html](test_translate.html) — Inter
 
-### 5. Google Fonts ⚠️ **Documented Exception**
+**Documentation:** https://fonts.google.com/
 
-**Version:** Dynamic (updates automatically)  
-**Purpose:** Web font hosting service  
-**CDN Provider:** Google  
-**Usage:** 3 files
+### 6. Google Translate — documented exception
 
-**CDN Configuration (Example):**
-```html
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
-```
-
-**Files Using This Library:**
-- [test_translate.html](test_translate.html) - Inter font (400, 600, 700 weights)
-- [qr_generator.html](qr_generator.html) - Inter font (300, 400, 500, 600, 700 weights)
-- [clubciclista.html](clubciclista.html) - Inter font (300-900 weights)
-- [around.html](around.html) - Inter font (400, 500, 600, 700 weights)
-- [lang2cron.html](lang2cron.html) - Inter font (400, 500, 600, 700 weights)
-
-**Security Notes:**
-- ⚠️ **No SRI hash** - This is correct per AGENTS.md guidelines
-- ⚠️ **No crossorigin** - Not required for Google Fonts
-- ℹ️ Google Fonts dynamically updates and SRI would break functionality
-- ℹ️ Documented exception in AGENTS.md (Special Cases section)
-
-**Documentation:** https://fonts.google.com/  
-**Last Security Audit:** 14 February 2026  
-**Exception Rationale:** Google Fonts uses dynamic CSS that varies by browser and updates frequently. SRI constraints would break the service. This is an accepted trade-off for trusted Google infrastructure.
-
----
-
-### 6. Google Translate API ⚠️ **Documented Exception**
-
-**Version:** Dynamic (updates automatically)  
-**Purpose:** Client-side translation widget  
-**CDN Provider:** Google  
+**Version:** Dynamic provider service
+**Purpose:** Client-side translation element
 **Usage:** 2 files
 
-**CDN Configuration:**
-```html
-<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-```
+This provider-controlled script does not offer a version-pinned URL or a stable resource for SRI. The current embed pattern does not use `crossorigin`; this is a documented exception.
 
-**Files Using This Library:**
-- [test_translate.html](test_translate.html)
+**Files:**
 - [clubciclista.html](clubciclista.html)
+- [test_translate.html](test_translate.html)
 
-**Security Notes:**
-- ⚠️ **No SRI hash** - This is correct per AGENTS.md guidelines
-- ⚠️ **No crossorigin** - Not required for Google APIs
-- ⚠️ **No version pinning** - API endpoint doesn't support versioning
-- ℹ️ Documented exception in AGENTS.md (Google Services section)
+**Documentation:** https://cloud.google.com/translate/
 
-**Documentation:** https://cloud.google.com/translate/  
-**Last Security Audit:** 14 February 2026  
-**Exception Rationale:** Google Translate API is a dynamic service that updates frequently. It doesn't support SRI or version pinning. This is an accepted trade-off for trusted Google infrastructure.
+### 7. Google Maps JavaScript API — documented exception
 
----
+**Version:** Dynamic provider service
+**Purpose:** Interactive maps and geometry library
+**Usage:** 1 file
+
+The app loads the Google Maps JavaScript API dynamically after the user provides a Google Maps API key. The URL in the current page does not specify a version or release channel. SRI is not practical for this provider-controlled API script; review the provider's version-selection options before claiming the loader is fully compliant. Runtime API data requests are outside this inventory's counts.
+
+**File:** [around.html](around.html)
+**Documentation:** https://developers.google.com/maps/documentation/javascript
 
 ## File-by-File Matrix
 
-| HTML File | Tailwind CSS | Lucide Icons | Chart.js | QRCode.js | Google Fonts | Google Translate |
-|-----------|--------------|--------------|----------|-----------|--------------|------------------|
-| **around.html** | ✅ | - | - | - | ✅ | - |
-| **lang2cron.html** | ✅ | - | - | - | ✅ | - |
-| **artemis_launch_counter.html** | - | - | - | - | - | - |
-| **clubciclista.html** | ✅ | ✅ | - | - | ✅ | ✅ |
-| **gcal_converter.html** | ✅ | - | - | - | - | - |
-| **image_comparison.html** | - | ✅ | - | - | - | - |
-| **index.html** | - | - | - | - | - | - |
-| **photo_tagger.html** | ✅ | - | - | - | - | - |
-| **qr_generator.html** | ✅ | ✅ | - | ✅ | ✅ | - |
-| **secure_secrets_gs.html** | ✅ | - | ✅ | - | - | - |
-| **spaceinvaders.html** | - | - | - | - | - | - |
-| **test_translate.html** | - | - | - | - | ✅ | ✅ |
+This matrix covers the 15 root-level HTML files in scope. A dash means no reference to that library/service was found.
 
-**Files with no CDN dependencies:** 3 (artemis_launch_counter.html, index.html, spaceinvaders.html)
+| HTML file | Tailwind CSS | Lucide | Chart.js | QRCode.js | Google Fonts | Google Translate | Google Maps JS API |
+|-----------|--------------|--------|----------|-----------|--------------|------------------|--------------------|
+| `around.html` | Static | - | - | - | Yes | - | Yes |
+| `artemis_launch_counter.html` | - | - | - | - | - | - | - |
+| `clubciclista.html` | Static | Yes | - | - | Yes | Yes | - |
+| `day_calculator.html` | - | - | - | - | - | - | - |
+| `datetimeparser.html` | - | - | - | - | - | - | - |
+| `gcal_converter.html` | Play CDN | - | - | - | - | - | - |
+| `image_comparison.html` | - | Yes | - | - | - | - | - |
+| `index.html` | - | - | - | - | - | - | - |
+| `lang2cron.html` | Static | - | - | - | Yes | - | - |
+| `photo_tagger.html` | Play CDN | - | - | - | - | - | - |
+| `qr_generator.html` | Play CDN | Yes | - | Yes | Yes | - | - |
+| `secure_secrets_gs.html` | Play CDN | - | Yes | - | - | - | - |
+| `spaceinvaders.html` | - | - | - | - | - | - | - |
+| `test_translate.html` | - | - | - | - | Yes | Yes | - |
+| `timezoneconverter.html` | - | - | - | - | - | - | - |
 
----
+**Files without CDN dependencies:** `artemis_launch_counter.html`, `day_calculator.html`, `datetimeparser.html`, `index.html`, `spaceinvaders.html`, and `timezoneconverter.html`.
 
-## Version Update Guidelines
+## Dependency Maintenance
 
-### When to Update CDN Versions
+When adding, updating, or removing a CDN dependency:
 
-1. **Security Vulnerabilities:** Update immediately if a CVE is published
-2. **Regular Maintenance:** Review quarterly for minor/patch updates
-3. **Breaking Changes:** Test thoroughly before updating major versions
-4. **Deprecation Notices:** Plan migration when library maintainers announce EOL
+1. Prefer native browser functionality where practical.
+2. For static CDN resources, pin an exact version and include a verified SHA-384 SRI hash and `crossorigin="anonymous"`.
+3. Document approved dynamic-service exceptions and their rationale.
+4. Test affected pages in a browser, including their direct-file behavior where applicable.
+5. Update the library inventory, usage lists, matrix, and summary counts together.
+6. Check dependencies for known vulnerabilities and record the scope and date of that check; do not describe an inventory reconciliation as a vulnerability audit.
 
-### Update Checklist
+Avoid `@latest`, version ranges, unversioned static URLs, and the Tailwind Play CDN.
 
-- [ ] Test library in isolated environment first
-- [ ] Generate new SRI hash using commands provided above
-- [ ] Update version number in CDN URL
-- [ ] Update integrity attribute with new SRI hash
-- [ ] Test all affected HTML files in multiple browsers
-- [ ] Update this CDN_INVENTORY.md file with new version and date
-- [ ] Document any breaking changes in commit message
-- [ ] Run security vulnerability check (if available)
+## Review Log
 
-### Recommended CDN Providers (in order of preference)
-
-1. **jsDelivr** (`cdn.jsdelivr.net`) - Provides SRI hashes, fast global CDN
-2. **cdnjs** (`cdnjs.cloudflare.com`) - Cloudflare-backed, reliable
-3. **unpkg** (`unpkg.com`) - Good for npm packages, generate SRI manually
-
-**Avoid:**
-- Using `@latest` or unversioned URLs
-- CDNs without HTTPS support
-- Tailwind Play CDN (`cdn.tailwindcss.com`) - JIT compiler, no SRI support
-
----
-
-## Security Audit Log
-
-| Date | Auditor | Action | Notes |
-|------|---------|--------|-------|
-| 14 Feb 2026 | System | Initial inventory created | All 6 libraries documented, 100% compliant |
-
----
-
-## Maintenance Instructions
-
-**Update this file whenever:**
-1. Adding a new CDN library to any HTML file
-2. Updating the version of an existing library
-3. Removing a CDN dependency
-4. Discovering a security vulnerability
-5. Conducting quarterly security audits
-
-**Required Information for New Libraries:**
-- Library name, version, and purpose
-- Complete CDN configuration (URL, SRI, crossorigin)
-- List of files using the library
-- Link to official documentation
-- Command to generate SRI hash
-- Security audit notes
-
-**Verification Steps:**
-1. Search codebase: `grep -r "cdn\." *.html`
-2. Check for @latest: `grep -r "@latest" *.html` (should return nothing)
-3. Verify SRI: `grep -r "integrity=" *.html`
-4. Cross-reference with this inventory file
-
----
+| Date | Review | Notes |
+|------|--------|-------|
+| 24 Oct 2026 | Repository inventory reconciliation | Reconciled root-level CSS/JavaScript dependencies and counts. No vulnerability database scan or independent SRI hash validation was performed. |
 
 ## Related Documentation
 
-- **[AGENTS.md](AGENTS.md)** - See "CDN Library with SRI" section for implementation standards
-- **[README.md](README.md)** - Project overview and structure
-- **[.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml)** - Deployment configuration
+- [AGENTS.md](AGENTS.md) — CDN implementation standards
+- [README.md](README.md) — Project overview
+- [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) — Deployment workflow
 
 ---
 
 **InnovUmabot** | [https://innovumabot.com](https://innovumabot.com)
 
-*This inventory maintains security and compliance standards for all external dependencies.*
+*This inventory records external dependencies and their documented exceptions.*
