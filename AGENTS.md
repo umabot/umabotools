@@ -83,7 +83,7 @@ Umabotools is a collection of simple, standalone web applications and utility to
 ├── <app-name>.html         # Individual web apps
 ├── assets/                 # Images and reusable components
 │   ├── images/             # Logos and branding
-│   │   └── logo.svg        # InnovUmabot logo
+│   │   └── logo.png        # InnovUmabot logo
 │   └── snippets/           # Reusable markdown partials
 │       ├── doc-header.md   # Standard header (back to home link)
 │       └── doc-footer.md   # Standard footer (license, branding)
@@ -168,15 +168,13 @@ This project is licensed under the MIT License.
 *This tool was vibe-coded with AI with strict human supervision.*
 ```
 
-6. Run `python3 convert_docs.py` to generate HTML
-
 These snippets are automatically added to all documentation pages during conversion.
 
 ### Branding Assets
 
 Place company logo in `./assets/images/`:
 
-- `logo.svg` (preferred) or `logo.png`
+- `logo.png`
 - Logo is displayed at the top of the landing page
 - Keep logo files under 200KB for fast loading
 
@@ -188,37 +186,31 @@ Place company logo in `./assets/images/`:
 2. Write pure HTML/CSS/JS (no frameworks)
 3. Test locally by opening in browser
 4. Create `./docs/<app-name>/README.md`
-5. Add entry to `index.html` tools table
-6. Push to GitHub (auto-deploys to Pages)
+5. Add entry to `index.md` tools table
+6. Run `python3 convert_docs.py` to generate the updated HTML output
+7. Push to GitHub (auto-deploys to Pages)
 
 ### Adding a Python Tool
 
 1. Create script in `./tools/`
 2. Use `uv` for dependencies
 3. Document in `./docs/<tool-name>/README.md`
-4. Add entry to `index.html`
+4. Add entry to the `index.md` tools table
+5. Run `python3 convert_docs.py` to regenerate the HTML output
 
 ### Adding a Google Apps Script
 
 1. Host script in Google Apps Script
 2. Document usage in `.md`
-5. Run `python3 convert_docs.pys/<tool-name>/README.md`
 3. Include setup instructions (API keys, permissions, etc.)
-4. Add entry to `index.html`
+4. Add entry to the `index.md` tools table
+5. Run `python3 convert_docs.py` to regenerate the HTML output
 
 ## CI/CD Pipeline
 
-- GitHub Actions convert `index.md` to `index.html`
-  - Convert markdown docs to HTML with header/footer snippets
-  - Deploy all HTML files to GitHub Pages
-  - Copy `assets/` directory (images, snippets)
-  - Maintain `./dist/` folder structure
-
-**Validation**: Ensures `index.html` exists before deployment
-
-  - Convert markdown docs to HTML
-  - Deploy all HTML files to GitHub Pages
-  - Maintain `./dist/` folder structure
+- GitHub Actions converts `index.md` to `index.html`.
+- The documentation conversion workflow adds header/footer snippets to generated docs, maintains the `./dist/` structure, and deploys the site to GitHub Pages.
+- The deployment workflow validates that `index.html` exists before publishing.
 
 ## Testing Requirements
 
@@ -308,9 +300,11 @@ curl -s "https://cdn.example.com/library@1.0.0.js" | openssl dgst -sha384 -binar
    ```
    Note: Google Fonts dynamically updates, SRI not practical
 
-3. **Google Services** (Translate, Maps, etc.): SRI not applicable
+3. **Dynamic Google Services** (Translate, Maps, etc.): SRI not applicable
    - These are dynamic APIs that update frequently
-   - Document as exceptions in security review
+   - Document them as exceptions in the dependency inventory
+
+Google Fonts and dynamic Google services are exceptions to SRI when responses vary or are provider-controlled. Pin a version or release channel when the service supports it; waive version pinning only when the provider does not offer a stable version. The `crossorigin` requirement may be waived only when the documented embed pattern does not support or require it. Record each exception and its rationale in the dependency inventory. Other CDN resources, including Tailwind CSS, must follow the pinned-version, SRI, and `crossorigin` requirements above.
 
 **Version Pinning Rules:**
 - Always specify exact version: `library@1.2.3`
@@ -333,7 +327,7 @@ const data = JSON.parse(localStorage.getItem('key') || '[]');
 
 ### API Proxy Pattern
 
-See `photo_tagger.html` and `secure_sec`
+See `photo_tagger.html` and `secure_secrets_gs.html`.
 
 ## File Naming Conventions
 
@@ -342,7 +336,7 @@ See `photo_tagger.html` and `secure_sec`
 - Commit both `index.md` and generated `index.html`
 - Don't commit API keys or secrets
 - Keep `.gitignore` updated
-- Commit `assets/` directory (logos and snippets)`kebab-case`
+- Keep file names consistent with the naming conventions above.
 
 ## Version Control
 
@@ -355,13 +349,13 @@ See `photo_tagger.html` and `secure_sec`
 ## Questions & Troubleshooting
 
 **Q: Can I use a JavaScript framework?**
+A: No. This project uses vanilla JavaScript only.
 
 **Q: How do I update the landing page?**
 A: Edit `index.md`, run `python3 convert_docs.py`, then commit both files.
 
 **Q: Where do I add the company logo?**
-A: Place `logo.svg` or `logo.png` in `./assets/images/` directory.
-A: No. This project uses vanilla JavaScript only.
+A: Place `logo.png` in `./assets/images/` directory.
 
 **Q: How do I add a new CDN library?**
 A: Include with SRI hash, test for vulnerabilities, document the dependency.
