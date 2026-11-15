@@ -28,6 +28,8 @@ Part of the inspiration comes from tools available from web pages, or [1-click t
 | [Around](around.html) | Plot and visualize lists of locations on Google Maps from multiple formats (coordinates, maps links, addresses) with custom labels, a floating table, and route connection. [See more](dist/around/README.html) |
 | [Lang2Cron](lang2cron.html) | Generate standard 5-field UNIX cron schedules from natural language prompts using Gemini for interactive grounding and multilingual clarification. [See more](dist/lang2cron/README.html) |
 | [mdproperties - Python CLI Tool](https://github.com/umabot/umabotools/tree/main/tools/mdproperties) | Command-line tool to manage YAML frontmatter in Obsidian markdown files. Read, add, modify, and delete properties with smart list handling and PARA system integration. <br>[See more](dist/mdproperties/README.html) |
+| [List Files by Size](https://github.com/umabot/umabotools/blob/main/tools/list_files_by_size.zsh) | macOS zsh function to find and list files from largest to smallest. [See more](dist/list_files_by_size/README.html) |
+| [List Files by Date](https://github.com/umabot/umabotools/blob/main/tools/list_files_by_date.zsh) | macOS zsh function to find and list files from newest to oldest. [See more](dist/list_files_by_date/README.html) |
 
 ---
 
